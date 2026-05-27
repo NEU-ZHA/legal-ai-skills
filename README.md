@@ -12,11 +12,11 @@ This repository contains reusable AI-agent skills for legal research, PKULaw MCP
 
 - **法律检索不回源**：把北大法宝 MCP、网页兜底检索、法条/案例核验拆成可复用流程。
 - **引注容易编造或缺要素**：要求缺失信息用占位符提示，不猜测、不硬补。
-- **Word 文书处理脆弱**：提供脚注、目录、TOA、DOCX 结构处理辅助。
+- **Word 文书处理脆弱**：提供脚注、目录、TOA、证据目录、DOCX 结构处理辅助。
 
 - **Ungrounded legal research**: reusable PKULaw MCP and browser fallback workflows.
 - **Fabricated or incomplete citations**: missing facts must be flagged with placeholders instead of guessed.
-- **Fragile Word/DOCX editing**: helpers for footnotes, TOA, and DOCX internals.
+- **Fragile Word/DOCX editing**: helpers for footnotes, TOA, evidence catalogs, and DOCX internals.
 
 ## 技能清单 / Included Skills
 
@@ -50,6 +50,7 @@ Additional PKULaw workflows include case-number extraction, law-recognition, opi
 | `legal-citation-automator` | 把已核验引注写入 DOCX 脚注 | Insert verified citations into DOCX footnotes |
 | `legal-homework-formatter` | 法学作业 Word 格式处理；公开版会询问姓名/学号 | Format legal homework DOCX files; public version asks for user identity fields |
 | `legal-toa-formatter` | Table of Authorities 点号填充与对齐 | Format Table of Authorities dot leaders |
+| `evidence-catalog-generator` | 从用户提供的证据条目和模板生成匿名通用证据目录 | Generate anonymized evidence catalogs from user-provided item data and templates |
 
 `legal-homework-formatter` 现在包含一份匿名化 Word 模板：
 
