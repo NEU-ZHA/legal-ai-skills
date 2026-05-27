@@ -6,9 +6,9 @@ This guide tells users and AI agents what local materials to provide, how to use
 
 ## 一、最理想的输入 / Ideal Inputs
 
-如果你要把一份法律作业、legal writing 作业、negotiation writing 草稿或类似 Word 文书排成课程/机构要求的格式，最好提供：
+如果你要把一份法律作业、legal writing 作业或类似 Word 文书排成课程/机构要求的格式，最好提供：
 
-For legal homework, legal writing, negotiation writing, or similar Word submissions, provide:
+For legal homework, legal writing, or similar Word submissions, provide:
 
 | 材料 | 用途 | 常见文件 |
 | --- | --- | --- |

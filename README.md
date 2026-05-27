@@ -89,7 +89,7 @@ AI 通常会自己判断该用哪个 skill。上面这些“请使用 xxx”的�
 - 不要把学校账号、数据库 token、cookie、身份证号、手机号直接贴到公开聊天或 GitHub。
 - 交作业前自己再核对一遍法规名称、条号、案例名称、案号、页码和脚注。
 
-PKULaw/北大法宝相关 skills 适合已经有学校或机构访问权限的同学。没有 token 或登录权限也可以先不用，优先用上面几个写作、引注和 Word 处理 skill。
+PKULaw/北大法宝相关 skills 适合已经有学校或机构访问权限、并愿意自行开通/购买对应 MCP 服务的同学。刚开始建议先开通最基础的三个 MCP：法规关键词检索、精准法条查找、案例关键词检索；预算充足或需求更复杂时，再继续开通更多 MCP。MCP 检索通常比浏览器兜底快很多。没有 token 或登录权限也可以先不用，优先用上面几个写作、引注和 Word 处理 skill。
 
 ## 还需要准备什么 / What Else You Need
 
@@ -98,13 +98,14 @@ PKULaw/北大法宝相关 skills 适合已经有学校或机构访问权限的�
 | 你要做什么 | 建议使用 | 还需要你准备什么 | 没有时怎么办 |
 | --- | --- | --- | --- |
 | 检查法律分析有没有编造 | `legal-fact-checker` | 草稿文本；相关法条、案例、PDF、网页链接或数据库截图 | 让 AI 标 `[待补: 来源]`，不要让它凭记忆补 |
-| 检查、补全、统一脚注 | `legal-citation-comprehensive` | 脚注文本；原始 PDF、网页、数据库结果、页码 | 缺页码/案号/出版社等信息时，用 `[待补: ...]` |
-| 完整使用《法学引注手册》规则索引 | `legal-citation-comprehensive` | 找到同版《法学引注手册（第二版）》PDF，并在本地生成 `citation_rules.json`、`handbook_rule_index.json`、`handbook_rule_index.md` | 没有这些文件时，仍可做类型判断、缺项提示和占位符安全建议，但不能声称完成手册全量核验 |
+| 检查、补全、统一脚注 | `legal-citation-comprehensive` | 脚注文本；原始 PDF、网页、数据库结果、页码；如果要严格按手册全量核验，再准备同版《法学引注手册（第二版）》PDF 和本地规则索引 | 缺页码/案号/出版社等信息时，用 `[待补: ...]`；没有手册索引时，仍可先做类型判断和缺项提示，但不能声称完成手册全量核验 |
 | 把核验后的引注写进 Word 脚注 | `legal-citation-automator` | `.docx` 草稿；已经核验过的引注清单或 JSON；最好先跑 `legal-citation-comprehensive` | 还有 `[待补: ...]` 时先不要自动写入正式脚注 |
-| 排版法学作业、legal writing、nego writing | `legal-homework-formatter` | 作业说明；草稿；课程/机构模板；姓名、学号、课程名、日期等身份字段 | 没有课程模板时可用内置匿名模板；缺身份字段时让 AI 先问你 |
+| 排版法学作业、legal writing 或其他课程文书 | `legal-homework-formatter` | 作业说明；草稿；课程/机构模板；姓名、学号、课程名、日期等身份字段 | 没有课程模板时可用内置匿名模板；缺身份字段时让 AI 先问你 |
 | 生成证据目录 | `evidence-catalog-generator` | 证据材料、文件名、材料说明或条目表；最好提供自己的证据目录 `.docx` 模板 | 没模板时生成通用证据目录；缺证明事项/页码时标 `[待补: ...]` |
-| 查法规、法条、案例并回源 | `pkulaw-*` | 北大法宝账号/学校或机构权限；有效 token；对应 MCP 订阅 | 没 token 时先用网页登录或学校 IP；MCP 不通时用 `pkulaw-legal-search` 走浏览器兜底 |
+| 查法规、法条、案例并回源 | `pkulaw-*` | 北大法宝账号/学校或机构权限；有效 token；自行开通/购买对应 MCP，建议先配法规关键词检索、精准法条查找、案例关键词检索这三项 | MCP 搜索通常比浏览器兜底快很多；没 token 时先用网页登录或学校 IP；MCP 不通时用 `pkulaw-legal-search` 走浏览器兜底 |
 | 编辑、抽取、检查 Word/DOCX | `docx-editing`、`docx-cn`、`docx-toolkit`、`legal-toa-formatter` | 待处理 `.docx`；必要时提供原始模板或修改前版本 | 复杂修订/红线优先保留备份；格式异常时先让 AI 做兼容性检查 |
+
+简单说：`legal-citation-comprehensive` 可以先用起来；你把脚注和来源材料给它，它就能帮你找缺项、标占位符。只有你希望它严格按《法学引注手册（第二版）》逐条核验时，才需要另外准备同版 PDF 并生成下面说的规则索引文件。
 
 常用 Python 依赖可以这样安装：
 
@@ -200,9 +201,9 @@ Additional PKULaw workflows include case-number extraction, law-recognition, opi
 skills/legal-homework-formatter/assets/legal-homework-template-anonymized.docx
 ```
 
-如果用户本地有课程模板、legal writing 模板、negotiation writing 模板或机构文书模板，应优先使用用户提供的模板。没有模板时，再使用这个匿名模板作为保守基准。材料清单和“缺什么去哪里找”的说明见：
+如果用户本地有课程模板、legal writing 模板或机构文书模板，应优先使用用户提供的模板。没有模板时，再使用这个匿名模板作为保守基准。材料清单和“缺什么去哪里找”的说明见：
 
-If the user has a course, legal-writing, negotiation-writing, or institutional document template, use the user's template first. If no template is available, use the anonymized template as a conservative fallback. For the input checklist and missing-information workflow, see:
+If the user has a course, legal-writing, or institutional document template, use the user's template first. If no template is available, use the anonymized template as a conservative fallback. For the input checklist and missing-information workflow, see:
 
 ```text
 skills/legal-homework-formatter/references/user_materials_guide.md
