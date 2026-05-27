@@ -8,20 +8,41 @@
 用法:
   PKULAW_AUTH_TOKEN="..." python3 install_pkulaw_mcp.py [--mcp-path <path>]
   python3 install_pkulaw_mcp.py --token <authorization_token> [--mcp-path <path>]
+  python3 install_pkulaw_mcp.py --services all [--mcp-path <path>]
+  python3 install_pkulaw_mcp.py --services pkulaw-citation,pkulaw-hyperlink
 
 参数:
   --token              北大法宝 API 的 Bearer Token（不推荐写进 shell history）
   --mcp-path           MCP 配置文件路径（默认 ~/.workbuddy/mcp.json）
+  --services           basic（默认）、all，或逗号分隔的服务名
+  --include-advanced   安装全部高级可选服务，等同于 --services all
 """
 
+import argparse
 import getpass
 import json
 import os
 import sys
 
 
-# 北大法宝 MCP 服务定义模板
-PKULAW_MCP_SERVERS = {
+# 北大法宝 MCP 服务定义模板。安装前应先确认用户已经购买/开通哪些服务，
+# 再通过 --services 选择。未指定 --services 时用基础三项作为保守默认值。
+BASIC_MCP_SERVERS = {
+    "pkulaw-law-keyword": {
+        "type": "streamableHttp",
+        "url": "https://apim-gateway.pkulaw.com/mcp-law",
+    },
+    "pkulaw-fatiao": {
+        "type": "streamableHttp",
+        "url": "https://apim-gateway.pkulaw.com/mcp-fatiao",
+    },
+    "pkulaw-case": {
+        "type": "streamableHttp",
+        "url": "https://apim-gateway.pkulaw.com/mcp-case",
+    },
+}
+
+ADVANCED_MCP_SERVERS = {
     "pkulaw-law-search": {
         "type": "streamableHttp",
         "url": "https://apim-gateway.pkulaw.com/mcp-law-search-service",
@@ -42,18 +63,6 @@ PKULAW_MCP_SERVERS = {
         "type": "streamableHttp",
         "url": "https://apim-gateway.pkulaw.com/assistant/mcp-pkulaw-search",
     },
-    "pkulaw-law-keyword": {
-        "type": "streamableHttp",
-        "url": "https://apim-gateway.pkulaw.com/mcp-law",
-    },
-    "pkulaw-fatiao": {
-        "type": "streamableHttp",
-        "url": "https://apim-gateway.pkulaw.com/mcp-fatiao",
-    },
-    "pkulaw-case": {
-        "type": "streamableHttp",
-        "url": "https://apim-gateway.pkulaw.com/mcp-case",
-    },
     "pkulaw-case-search": {
         "type": "streamableHttp",
         "url": "https://apim-gateway.pkulaw.com/mcp-case-search-service",
@@ -64,8 +73,30 @@ PKULAW_MCP_SERVERS = {
     },
 }
 
+PKULAW_MCP_SERVERS = {**BASIC_MCP_SERVERS, **ADVANCED_MCP_SERVERS}
 
-def build_server_config(token: str) -> dict:
+
+def select_servers(services_arg: str, include_advanced: bool) -> dict:
+    """选择要安装的 MCP 服务。默认 basic；高级服务需显式启用。"""
+    if include_advanced or services_arg == "all":
+        return PKULAW_MCP_SERVERS
+
+    if services_arg == "basic":
+        return BASIC_MCP_SERVERS
+
+    selected_names = [name.strip() for name in services_arg.split(",") if name.strip()]
+    unknown = [name for name in selected_names if name not in PKULAW_MCP_SERVERS]
+    if unknown:
+        print(f"❌ 错误: 未知服务名: {', '.join(unknown)}")
+        print(f"可用服务: {', '.join(PKULAW_MCP_SERVERS)}")
+        sys.exit(1)
+    if not selected_names:
+        print("❌ 错误: --services 不能为空")
+        sys.exit(1)
+    return {name: PKULAW_MCP_SERVERS[name] for name in selected_names}
+
+
+def build_server_config(token: str, servers: dict) -> dict:
     """构建带 Authorization header 的完整 MCP 服务配置。"""
     headers = {
         "Content-Type": "application/json",
@@ -73,7 +104,7 @@ def build_server_config(token: str) -> dict:
     }
     return {
         name: {**cfg, "headers": headers}
-        for name, cfg in PKULAW_MCP_SERVERS.items()
+        for name, cfg in servers.items()
     }
 
 
@@ -96,10 +127,10 @@ def save_mcp_json(path: str, data: dict) -> None:
         f.write("\n")
 
 
-def install(token: str, mcp_path: str) -> None:
+def install(token: str, mcp_path: str, servers: dict) -> None:
     """执行安装：合并北大法宝 MCP 配置到 mcp.json。"""
     data = load_mcp_json(mcp_path)
-    new_servers = build_server_config(token)
+    new_servers = build_server_config(token, servers)
 
     # 统计新增/更新
     added = []
@@ -118,36 +149,34 @@ def install(token: str, mcp_path: str) -> None:
         print(f"   新增 {len(added)} 个服务: {', '.join(added)}")
     if updated:
         print(f"   更新 {len(updated)} 个服务: {', '.join(updated)}")
-    print(f"\n📋 共配置 {len(new_servers)} 个北大法宝 MCP 服务:")
+    print(f"\n📋 本次配置 {len(new_servers)} 个北大法宝 MCP 服务:")
     for name, cfg in new_servers.items():
         print(f"   • {name} → {cfg['url']}")
+    if set(new_servers) == set(BASIC_MCP_SERVERS):
+        print("\nℹ️  未指定 --services 时使用基础三项。用户已购买其他 MCP 时，可用 --services 服务名 启用。")
     print("\n⚠️  请重启 WorkBuddy 以加载新配置。")
 
 
 def main():
-    token = os.environ.get("PKULAW_AUTH_TOKEN", "")
-    mcp_path = os.path.expanduser("~/.workbuddy/mcp.json")
+    parser = argparse.ArgumentParser(description="安装/更新北大法宝 MCP 配置")
+    parser.add_argument("positional_token", nargs="?", help="兼容旧用法的位置参数 token")
+    parser.add_argument("--token", help="北大法宝 Bearer Token（不推荐写进 shell history）")
+    parser.add_argument("--mcp-path", default="~/.workbuddy/mcp.json", help="MCP 配置文件路径")
+    parser.add_argument(
+        "--services",
+        default="basic",
+        help="basic（默认）、all，或逗号分隔的服务名",
+    )
+    parser.add_argument(
+        "--include-advanced",
+        action="store_true",
+        help="安装全部高级可选服务，等同于 --services all",
+    )
+    args = parser.parse_args()
 
-    if "--token" in sys.argv:
-        idx = sys.argv.index("--token")
-        if idx + 1 < len(sys.argv):
-            token = sys.argv[idx + 1]
-        else:
-            print("❌ 错误: --token 需要提供 Token 参数")
-            sys.exit(1)
-
-    # Backward compatibility with the old positional form.
-    positional = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
-    if not token and positional:
-        token = positional[0]
-
-    if "--mcp-path" in sys.argv:
-        idx = sys.argv.index("--mcp-path")
-        if idx + 1 < len(sys.argv):
-            mcp_path = os.path.expanduser(sys.argv[idx + 1])
-        else:
-            print("❌ 错误: --mcp-path 需要提供路径参数")
-            sys.exit(1)
+    token = os.environ.get("PKULAW_AUTH_TOKEN", "") or args.token or args.positional_token or ""
+    mcp_path = os.path.expanduser(args.mcp_path)
+    servers = select_servers(args.services, args.include_advanced)
 
     if not token:
         token = getpass.getpass("请输入北大法宝 Bearer Token（不会回显）: ").strip()
@@ -156,7 +185,7 @@ def main():
         print("❌ 错误: 未提供 Authorization Token")
         sys.exit(1)
 
-    install(token, mcp_path)
+    install(token, mcp_path, servers)
 
 
 if __name__ == "__main__":
