@@ -18,6 +18,129 @@ This repository contains reusable AI-agent skills for legal research, PKULaw MCP
 - **Fabricated or incomplete citations**: missing facts must be flagged with placeholders instead of guessed.
 - **Fragile Word/DOCX editing**: helpers for footnotes, TOA, evidence catalogs, and DOCX internals.
 
+## 法学生最快上手 / Quick Start for Law Students
+
+如果你只是想尽快用起来，不需要先理解 MCP、脚本或 Git。按下面做：
+
+1. 在 GitHub 点 `Code` → `Download ZIP`，下载后解压。
+2. 打开解压后的 `skills/` 文件夹。
+3. 先复制这几个最常用的 skill 到你的 AI 工具的 skills 目录：
+
+```text
+legal-fact-checker
+legal-citation-comprehensive
+legal-citation-automator
+legal-homework-formatter
+evidence-catalog-generator
+```
+
+如果你不知道 skills 目录在哪里，直接问你的 AI：
+
+```text
+我想安装本地 skill。请告诉我当前运行时的 skills 目录在哪里，以及应该把这些文件夹复制到哪里。
+```
+
+4. 重启你的 AI 工具，或重新打开一个对话。
+5. 直接告诉 AI 要用哪个 skill，并把材料发给它。
+
+最常用的提问方式：
+
+```text
+请使用 legal-fact-checker 检查这段法律分析有没有编造法规、案例、案号或页码。缺少出处的地方请标 [待补: ...]。
+```
+
+```text
+请使用 legal-citation-comprehensive 帮我检查这些脚注格式。不要猜缺失信息，告诉我缺什么、应该去哪里找。
+```
+
+```text
+请使用 legal-homework-formatter 把这份法学作业整理成 Word 格式。姓名、学号、课程信息如果缺失，请先问我或使用 [待补: ...]。
+```
+
+```text
+请使用 evidence-catalog-generator。下面是我的证据材料/文件名/材料说明，请先整理成证据目录条目，再填入我提供的证据目录模板。
+```
+
+```text
+请使用 legal-citation-automator，把已经核验过的引注写入这个 DOCX 的脚注。
+```
+
+使用原则很简单：
+
+- 有原文、截图、PDF、Word、网页链接时，一起给 AI，不要只给结论。
+- 法律依据必须可回到真实来源；不确定就让 AI 标 `[待补: ...]`。
+- 不要把学校账号、数据库 token、cookie、身份证号、手机号直接贴到公开聊天或 GitHub。
+- 交作业前自己再核对一遍法规名称、条号、案例名称、案号、页码和脚注。
+
+PKULaw/北大法宝相关 skills 适合已经有学校或机构访问权限的同学。没有 token 或登录权限也可以先不用，优先用上面几个写作、引注和 Word 处理 skill。
+
+## 还需要准备什么 / What Else You Need
+
+多数 skill 本身只是“工作方法 + 脚本”，真正能不能顺利跑起来，取决于你有没有把材料、模板、数据库权限和依赖准备好。可以按这张表检查：
+
+| 你要做什么 | 建议使用 | 还需要你准备什么 | 没有时怎么办 |
+| --- | --- | --- | --- |
+| 检查法律分析有没有编造 | `legal-fact-checker` | 草稿文本；相关法条、案例、PDF、网页链接或数据库截图 | 让 AI 标 `[待补: 来源]`，不要让它凭记忆补 |
+| 检查、补全、统一脚注 | `legal-citation-comprehensive` | 脚注文本；原始 PDF、网页、数据库结果、页码 | 缺页码/案号/出版社等信息时，用 `[待补: ...]` |
+| 完整使用《法学引注手册》规则索引 | `legal-citation-comprehensive` | 找到同版《法学引注手册（第二版）》PDF，并在本地生成 `citation_rules.json`、`handbook_rule_index.json`、`handbook_rule_index.md` | 没有这些文件时，仍可做类型判断、缺项提示和占位符安全建议，但不能声称完成手册全量核验 |
+| 把核验后的引注写进 Word 脚注 | `legal-citation-automator` | `.docx` 草稿；已经核验过的引注清单或 JSON；最好先跑 `legal-citation-comprehensive` | 还有 `[待补: ...]` 时先不要自动写入正式脚注 |
+| 排版法学作业、legal writing、nego writing | `legal-homework-formatter` | 作业说明；草稿；课程/机构模板；姓名、学号、课程名、日期等身份字段 | 没有课程模板时可用内置匿名模板；缺身份字段时让 AI 先问你 |
+| 生成证据目录 | `evidence-catalog-generator` | 证据材料、文件名、材料说明或条目表；最好提供自己的证据目录 `.docx` 模板 | 没模板时生成通用证据目录；缺证明事项/页码时标 `[待补: ...]` |
+| 查法规、法条、案例并回源 | `pkulaw-*` | 北大法宝账号/学校或机构权限；有效 token；对应 MCP 订阅 | 没 token 时先用网页登录或学校 IP；MCP 不通时用 `pkulaw-legal-search` 走浏览器兜底 |
+| 编辑、抽取、检查 Word/DOCX | `docx-editing`、`docx-cn`、`docx-toolkit`、`legal-toa-formatter` | 待处理 `.docx`；必要时提供原始模板或修改前版本 | 复杂修订/红线优先保留备份；格式异常时先让 AI 做兼容性检查 |
+
+常用 Python 依赖可以这样安装：
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+有些功能还需要额外软件或权限：
+
+- `docx-editing` 的 Safe-DOCX 需要 Node.js 和 `@usejunior/safe-docx`。
+- `docx-cn` 接受修订、转换等高级 Word 操作时，可能需要本机安装 LibreOffice。
+- 北大法宝 MCP 需要你自己的 PKULaw token 或学校/机构访问权限。
+- 第三方手册、教材、数据库导出的全文或索引，请只使用你自己有合法来源的本地文件。
+
+### 《法学引注手册》怎么补 / Citation Handbook Setup
+
+`legal-citation-comprehensive` 是按《法学引注手册（第二版）》设计的。公开仓库不直接分发这本手册的 PDF、OCR 全文或完整规则索引。你需要自己从合法来源取得同一版材料，例如课程资料、图书馆数据库、出版社/期刊社页面、教师或助教提供的文件。
+
+拿到同版 PDF 后，建议这样放：
+
+```text
+skills/legal-citation-comprehensive/assets/Law_Journal_Citation_Handbook_2025.pdf
+```
+
+然后把它转成机器可读文件：
+
+```text
+skills/legal-citation-comprehensive/references/handbook_raw.md
+skills/legal-citation-comprehensive/references/citation_handbook_structured.md
+skills/legal-citation-comprehensive/references/handbook_rule_index.json
+skills/legal-citation-comprehensive/references/handbook_rule_index.md
+skills/legal-citation-comprehensive/references/citation_rules.json
+```
+
+最省事的做法是把同版 PDF 交给你的 AI，让它按下面这段话处理：
+
+```text
+请把这份《法学引注手册（第二版）》PDF 先 OCR/提取成 Markdown，保存为 handbook_raw.md。
+然后提取第 1-150 条规则，生成 handbook_rule_index.json 和 handbook_rule_index.md。
+JSON 每条规则至少包含 rule_number、title、category、text、raw_start_line、raw_end_line。
+再根据常见引注类型生成 citation_rules.json，包含 types、required、optional、template、anchors、lookup_guidance。
+不要改写规则含义；OCR 不清楚的地方请标 [待核: OCR]。
+```
+
+生成后可以测试：
+
+```bash
+python3 skills/legal-citation-comprehensive/scripts/handbook_lookup.py --rule 1
+python3 skills/legal-citation-comprehensive/scripts/self_test.py
+```
+
+如果你只有 PDF，还没来得及做索引，也可以先用这个 skill 做“缺什么、去哪找、不要编造”的初步检查；只是不要把结果说成已经完成手册全量核验。
+
 ## 技能清单 / Included Skills
 
 ### 北大法宝与法律检索 / PKULaw MCP and Legal Research

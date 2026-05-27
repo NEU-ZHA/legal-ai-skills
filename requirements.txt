@@ -1,0 +1,7 @@
+defusedxml
+lxml
+olefile
+openpyxl
+pdfplumber
+Pillow
+python-docx
