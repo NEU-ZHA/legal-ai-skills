@@ -197,7 +197,7 @@ def _set_metadata(document: Document) -> None:
     props.author = "Legal AI Skills Contributors"
     props.last_modified_by = "Legal AI Skills Contributors"
     props.title = "Evidence Catalog Template"
-    props.subject = "Anonymized evidence catalog generated from user-provided data"
+    props.subject = "Evidence catalog generated from user-provided data"
     props.comments = "No real case facts are bundled with this public skill."
 
 
@@ -275,4 +275,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

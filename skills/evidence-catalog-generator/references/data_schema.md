@@ -1,8 +1,8 @@
 # Evidence Catalog Data Schema / 证据目录数据结构
 
-公开版只使用通用字段，不包含任何真实案件、案由、房产、交易、金额或案号示例。
+公开版只使用通用字段，不包含任何真实案件、案由、交易、金额或案号示例。真实使用时，先把用户提供的证据材料、文件名或材料说明整理成下列条目结构，再填入模板。
 
-The public version uses only generic fields and contains no real case facts, property information, transaction amounts, or docket examples.
+The public version uses only generic fields and contains no real case facts, transaction amounts, or docket examples. In real use, first organize the user's evidence materials, filenames, or descriptions into the item structure below, then fill the template.
 
 ## Supported Input Formats
 
@@ -62,4 +62,3 @@ If a user supplies a DOCX template, the script replaces these placeholders where
 | `[提交日期]` | Submission date |
 
 Do not commit a user's filled template back to the public repository.
-

@@ -50,7 +50,7 @@ Additional PKULaw workflows include case-number extraction, law-recognition, opi
 | `legal-citation-automator` | 把已核验引注写入 DOCX 脚注 | Insert verified citations into DOCX footnotes |
 | `legal-homework-formatter` | 法学作业 Word 格式处理；公开版会询问姓名/学号 | Format legal homework DOCX files; public version asks for user identity fields |
 | `legal-toa-formatter` | Table of Authorities 点号填充与对齐 | Format Table of Authorities dot leaders |
-| `evidence-catalog-generator` | 从用户提供的证据条目和模板生成匿名通用证据目录 | Generate anonymized evidence catalogs from user-provided item data and templates |
+| `evidence-catalog-generator` | 整理用户提供的证据材料，并填入证据目录模板 | Organize user-provided evidence materials into an evidence catalog template |
 
 `legal-homework-formatter` 现在包含一份匿名化 Word 模板：
 
