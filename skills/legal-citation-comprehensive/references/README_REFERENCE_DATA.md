@@ -8,6 +8,8 @@ assets/Law_Journal_Citation_Handbook_2025.pdf
 
 The public package intentionally does not redistribute third-party handbook PDFs, OCR text, or full derived rule indexes. Obtain the same edition from a lawful source such as course materials, a library database, a publisher/journal page, or a file provided by your teacher.
 
+If your copy is an image-only scanned PDF, first convert it to a searchable PDF with WPS, Adobe Acrobat, or another OCR tool. Feeding a searchable PDF to the agent is usually cheaper in tokens and less error-prone than asking the agent to OCR the entire scanned book directly.
+
 For full coverage, place legally obtained local files here:
 
 ```text
@@ -21,11 +23,12 @@ references/citation_rules.json
 
 Recommended conversion workflow:
 
-1. OCR or extract the PDF into `references/handbook_raw.md`.
-2. Extract Rules 1-150 into `references/handbook_rule_index.json`.
-3. Create a readable copy at `references/handbook_rule_index.md`.
-4. Create `references/citation_rules.json` for fast diagnosis and formatting.
-5. Mark unclear OCR passages as `[待核: OCR]` instead of guessing.
+1. Confirm the handbook PDF is searchable. If it is image-only, OCR it into a searchable PDF first.
+2. Extract the searchable PDF into `references/handbook_raw.md`.
+3. Extract Rules 1-150 into `references/handbook_rule_index.json`.
+4. Create a readable copy at `references/handbook_rule_index.md`.
+5. Create `references/citation_rules.json` for fast diagnosis and formatting.
+6. Mark unclear OCR passages as `[待核: OCR]` instead of guessing.
 
 `handbook_rule_index.json` should use this shape:
 

@@ -130,7 +130,9 @@ python3 -m pip install -r requirements.txt
 skills/legal-citation-comprehensive/assets/Law_Journal_Citation_Handbook_2025.pdf
 ```
 
-然后把它转成机器可读文件：
+如果你手里的是扫描版 PDF，也就是打开后不能选中文字、只能看到图片页，建议先用 WPS、Adobe Acrobat 或其他 OCR 工具把它转成“可搜索 PDF”。再把可搜索 PDF 交给 AI 处理，会明显节省 token，也能减少 AI 直接读整本图片扫描件时的识别错误。
+
+然后把可搜索 PDF 转成机器可读文件：
 
 ```text
 skills/legal-citation-comprehensive/references/handbook_raw.md
@@ -140,10 +142,12 @@ skills/legal-citation-comprehensive/references/handbook_rule_index.md
 skills/legal-citation-comprehensive/references/citation_rules.json
 ```
 
-最省事的做法是把同版 PDF 交给你的 AI，让它按下面这段话处理：
+最省事的做法是把同版的可搜索 PDF 交给你的 AI，让它按下面这段话处理：
 
 ```text
-请把这份《法学引注手册（第二版）》PDF 先 OCR/提取成 Markdown，保存为 handbook_raw.md。
+请先确认这份《法学引注手册（第二版）》PDF 是否可搜索。
+如果它已经可搜索，请直接提取成 Markdown，保存为 handbook_raw.md。
+如果它还是图片扫描件，请提醒我先用 WPS/Adobe/OCR 工具转成可搜索 PDF，不要直接全文消耗 token 识别整本扫描件。
 然后提取第 1-150 条规则，生成 handbook_rule_index.json 和 handbook_rule_index.md。
 JSON 每条规则至少包含 rule_number、title、category、text、raw_start_line、raw_end_line。
 再根据常见引注类型生成 citation_rules.json，包含 types、required、optional、template、anchors、lookup_guidance。
