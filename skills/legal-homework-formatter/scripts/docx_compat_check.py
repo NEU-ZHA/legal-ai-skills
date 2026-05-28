@@ -17,6 +17,7 @@ import re
 import sys
 import zipfile
 from pathlib import Path
+from xml.etree import ElementTree as ET
 
 
 def read_member(zf: zipfile.ZipFile, name: str) -> str:
@@ -24,6 +25,18 @@ def read_member(zf: zipfile.ZipFile, name: str) -> str:
         return zf.read(name).decode("utf-8")
     except KeyError:
         return ""
+
+
+def undeclared_ignorable_prefixes(xml_text: str) -> list[str]:
+    root_match = re.search(r"<[^!?][^>]*>", xml_text)
+    if not root_match:
+        return []
+    root_tag = root_match.group(0)
+    ignorable = re.search(r"(?:[A-Za-z_][\w.-]*:)?Ignorable=\"([^\"]+)\"", root_tag)
+    if not ignorable:
+        return []
+    declared = set(re.findall(r"\sxmlns:([A-Za-z_][\w.-]*)=", root_tag))
+    return sorted(set(ignorable.group(1).split()) - declared)
 
 
 def main() -> int:
@@ -50,6 +63,21 @@ def main() -> int:
             footnotes = read_member(zf, "word/footnotes.xml")
             rels = read_member(zf, "word/_rels/document.xml.rels")
             content_types = read_member(zf, "[Content_Types].xml")
+
+            for xml_name in sorted(name for name in names if name.endswith(".xml")):
+                xml_text = read_member(zf, xml_name)
+                if not xml_text:
+                    continue
+                try:
+                    ET.fromstring(xml_text.encode("utf-8"))
+                except ET.ParseError as exc:
+                    errors.append(f"{xml_name} is not well-formed XML: {exc}")
+                missing_prefixes = undeclared_ignorable_prefixes(xml_text)
+                if missing_prefixes:
+                    errors.append(
+                        f"{xml_name} has mc:Ignorable prefixes without xmlns declarations: "
+                        + ", ".join(missing_prefixes)
+                    )
 
             refs = re.findall(r"<w:footnoteReference[^>]*w:id=\"(-?\d+)\"", document)
             fn_defs = re.findall(r"<w:footnote\b[^>]*w:id=\"(-?\d+)\"", footnotes)

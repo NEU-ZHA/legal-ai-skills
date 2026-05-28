@@ -44,6 +44,7 @@ class FootnoteAutomator:
     NAMESPACES = {
         'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
         'w14': 'http://schemas.microsoft.com/office/word/2010/wordml',
+        'mc': 'http://schemas.openxmlformats.org/markup-compatibility/2006',
     }
     
     # 注册命名空间
@@ -152,12 +153,14 @@ class FootnoteAutomator:
             document_path = temp_dir / "word" / "document.xml"
             tree = ET.parse(document_path)
             root = tree.getroot()
+            self._strip_ignorable_attr(root)
             
             # 读取或创建脚注文件
             footnotes_path = temp_dir / "word" / "footnotes.xml"
             if footnotes_path.exists():
                 footnotes_tree = ET.parse(footnotes_path)
                 footnotes_root = footnotes_tree.getroot()
+                self._strip_ignorable_attr(footnotes_root)
             else:
                 footnotes_root = self._create_footnotes_xml()
             
@@ -242,6 +245,12 @@ class FootnoteAutomator:
             if footnote_id:
                 ids.append(int(footnote_id))
         return ids
+
+    def _strip_ignorable_attr(self, root: ET.Element) -> None:
+        """Remove stale mc:Ignorable after ElementTree namespace rewriting."""
+        for attr in list(root.attrib):
+            if attr.endswith('}Ignorable'):
+                del root.attrib[attr]
     
     def _insert_footnote_reference(self, root: ET.Element, citation: Dict, footnote_id: int) -> bool:
         """在文档中插入脚注引用"""
