@@ -67,6 +67,7 @@ When the user asks to "strictly follow the homework skill" or provides the cours
   - remove paragraph-level `<w:numPr>` from all title/heading paragraphs;
   - clear run-level `<w:color>` values inherited from styles/themes, especially `w:themeColor`, then set direct black color `<w:color w:val="000000"/>`;
   - remove `<w:highlight>` and `<w:shd>` on generated title/heading runs unless the user explicitly asks for color.
+  - run `python3 scripts/fix_pandoc_heading_artifacts.py input.docx --output output.docx` before the final compatibility check when the source DOCX came from Pandoc/Markdown.
   This bug appeared in a 2026-05-27 Word check: Pandoc's heading style survived OOXML post-processing, so Word displayed the main title and headings in blue-green and with black bullet markers even though font/size had been overwritten.
 - After running any quote normalizer, re-check footnotes: standalone curly quote runs in footnotes may accidentally inherit body size. Force footnote quote runs (`“”‘’`) back to 小五 (`w:sz=18`) and 宋体.
 - Do not save a finished footnoted document with `python-docx` after manually editing footnotes unless you have verified `word/footnotes.xml` and `footnoteReference` markers are preserved. Prefer ZIP/XML surgery for final footnote and quote fixes.
@@ -277,6 +278,8 @@ Checklist:
 
 ### Scripts
 - `scripts/add_footnotes.py`: Footnote automation utilities
+- `scripts/fix_pandoc_heading_artifacts.py`: remove Pandoc/Word `Heading1`/`Heading2`/`Title` styles, theme colors, highlighting, shading, and auto-numbering from homework titles/headings
+- `scripts/docx_compat_check.py`: final Word/WPS compatibility check, including stale namespace and Pandoc heading-style warnings
 
 ### References
 - `references/format_requirements.md`: Comprehensive formatting requirements

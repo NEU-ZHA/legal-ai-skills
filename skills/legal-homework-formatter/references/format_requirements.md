@@ -216,7 +216,17 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 - 作业正文通常保留手写标题编号（便于纯文本和批注识别）
 - 在生成最终 docx 时移除 styles.xml 中 heading 1/2/3 的 `<w:numPr>`，保留字号、加粗等其他样式属性
 
-### 6.5 中文字体不显示为宋体
+### 6.5 Pandoc 转写后标题变蓝/变绿
+**原因：** Markdown/Pandoc 转 DOCX 时常把标题段落写成 Word 内置 `Heading1`、`Heading2` 或 `Title`，并通过主题色、highlight、shading 或自动编号继承视觉样式。之后即使直接改字号，Word 仍可能按内置标题样式显示为蓝色、绿色或带项目符号。
+
+**解决：**
+- 最终生成前运行 `scripts/fix_pandoc_heading_artifacts.py`；
+- 清除标题段落的 `Heading1`/`Heading2`/`Title` 样式和 `<w:numPr>`；
+- 清除标题 run 的 `<w:color>`、`w:themeColor`、`<w:highlight>`、`<w:shd>`；
+- 直接写入黑色 `<w:color w:val="000000"/>`，并按标题层级设置字号和加粗；
+- 最后运行 `scripts/docx_compat_check.py`，若仍提示 Pandoc/Word heading styles，继续清理后再交付。
+
+### 6.6 中文字体不显示为宋体
 **原因：** 未正确设置 docDefaults 的 eastAsia theme font，或 run rPr 覆盖了字体
 
 **解决：** 
@@ -224,7 +234,7 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 - 参考模板的 theme 文件定义了 minorEastAsia = 宋体
 - 正文 run 仅设 `<w:rFonts w:hint="eastAsia"/>` 触发 East Asian font
 
-### 6.6 脚注引号变成正文字号
+### 6.7 脚注引号变成正文字号
 **原因：** 引号规范化脚本可能把 `“”‘’` 拆成独立 run，并继承正文五号或其他默认字号
 
 **解决：**

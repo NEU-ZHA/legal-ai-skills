@@ -112,9 +112,10 @@ def main() -> int:
             if unused:
                 warnings.append(f"footnote definitions not referenced by document.xml: {', '.join(unused)}")
 
-            for reserved in ("-1", "0"):
-                if reserved not in fn_defs:
-                    warnings.append(f"standard separator footnote id {reserved} is missing")
+            if refs or fn_defs:
+                for reserved in ("-1", "0"):
+                    if reserved not in fn_defs:
+                        warnings.append(f"standard separator footnote id {reserved} is missing")
 
             # ID 1 is valid in the course reference template. IDs 2/3 are not
             # inherently illegal OOXML, but in this user's workflow they often
@@ -135,6 +136,23 @@ def main() -> int:
                     warnings.append(f"footnote {fid} does not use paragraph style a7")
                 if 'w:rStyle w:val="ab"' not in text and "w:rStyle w:val='ab'" not in text:
                     warnings.append(f"footnote {fid} does not use footnote reference style ab")
+
+            pandoc_heading_styles = sorted(set(re.findall(
+                r'<w:pStyle[^>]*w:val="(Heading[1-6]|Title|Subtitle)"',
+                document,
+                flags=re.I,
+            )))
+            if pandoc_heading_styles:
+                warnings.append(
+                    "document.xml still contains Pandoc/Word heading styles that can render homework headings blue: "
+                    + ", ".join(pandoc_heading_styles)
+                )
+
+            if pandoc_heading_styles and "w:themeColor" in document:
+                warnings.append(
+                    "document.xml contains theme-colored heading runs; run fix_pandoc_heading_artifacts.py "
+                    "or clear heading colors before final submission"
+                )
 
             print(f"Checked: {path}")
             print(f"footnote references: {', '.join(refs) if refs else '(none)'}")
