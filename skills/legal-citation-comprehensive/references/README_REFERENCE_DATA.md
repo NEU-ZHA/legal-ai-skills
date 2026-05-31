@@ -78,8 +78,8 @@ python3 scripts/self_test.py
 
 Without those files, the skill can still diagnose citation type, identify missing elements, and produce placeholder-safe guidance, but exhaustive handbook verification is unavailable.
 
-For a friend/classroom setup handout, see:
+For a friend/classroom local setup handout, see:
 
 ```text
-docs/citation-handbook-local-pack.md
+docs/法学引注手册本地配置说明.md
 ```

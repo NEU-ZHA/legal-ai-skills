@@ -171,10 +171,10 @@ python3 skills/legal-citation-comprehensive/scripts/self_test.py
 
 如果你只有 PDF，还没来得及做索引，也可以先用这个 skill 做“缺什么、去哪找、不要编造”的初步检查；只是不要把结果说成已经完成手册全量核验。
 
-给同学或朋友分享时，可以直接发这份本地配套说明：
+给同学或朋友分享时，可以直接发这份本地配置说明：
 
 ```text
-docs/citation-handbook-local-pack.md
+docs/法学引注手册本地配置说明.md
 ```
 
 ## 技能清单 / Included Skills
