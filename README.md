@@ -165,9 +165,12 @@ JSON 每条规则至少包含 rule_number、title、category、text、raw_start_
 生成后可以测试：
 
 ```bash
+python3 skills/legal-citation-comprehensive/scripts/audit_reference_data.py
 python3 skills/legal-citation-comprehensive/scripts/handbook_lookup.py --rule 1
 python3 skills/legal-citation-comprehensive/scripts/self_test.py
 ```
+
+如果 `audit_reference_data.py` 报 `ERRORS`，先修复本地参考数据；如果 `self_test.py` 没有输出 `ALL TESTS PASSED`，不要声称已经完成手册全量核验。
 
 如果你只有 PDF，还没来得及做索引，也可以先用这个 skill 做“缺什么、去哪找、不要编造”的初步检查；只是不要把结果说成已经完成手册全量核验。
 

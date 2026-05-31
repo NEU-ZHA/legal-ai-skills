@@ -125,6 +125,17 @@ For any source type not explicitly represented in `citation_rules.json`, search 
 - `references/citation_handbook_structured.md`: structured digest of the handbook.
 - `assets/Law_Journal_Citation_Handbook_2025.pdf`: original handbook PDF for final verification when needed.
 
+## Reference Data Audit
+
+When a user rebuilds handbook reference data from their own PDF/OCR, do not trust the generated files merely because they exist. Run:
+
+```bash
+python3 scripts/audit_reference_data.py
+python3 scripts/self_test.py
+```
+
+`audit_reference_data.py` checks required files, rule count, continuous rule numbers, category ranges, raw line ranges, common rule hints, OCR/mojibake markers, and `citation_rules.json` shape. If it reports `ERRORS`, stop and repair the reference data before claiming full handbook coverage.
+
 ## Relationship to Other Skills
 
 - `legal-citation-automator`: use after this skill has produced or approved footnote text; it handles DOCX insertion and compatibility checks.

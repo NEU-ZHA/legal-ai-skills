@@ -72,6 +72,7 @@ Recommended conversion workflow:
 After adding the files, test with:
 
 ```bash
+python3 scripts/audit_reference_data.py
 python3 scripts/handbook_lookup.py --rule 1
 python3 scripts/self_test.py
 ```
