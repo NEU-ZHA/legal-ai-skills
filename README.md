@@ -140,7 +140,15 @@ skills/legal-citation-comprehensive/assets/Law_Journal_Citation_Handbook_2025.pd
 
 如果你手里的是扫描版 PDF，也就是打开后不能选中文字、只能看到图片页，建议先用 WPS、Adobe Acrobat 或其他 OCR 工具把它转成“可搜索 PDF”。再把可搜索 PDF 交给 AI 处理，会明显节省 token，也能减少 AI 直接读整本图片扫描件时的识别错误。
 
-然后把可搜索 PDF 转成机器可读文件：
+然后把可搜索 PDF 转成机器可读文件。最省事的做法是直接运行构建脚本：
+
+```bash
+python3 skills/legal-citation-comprehensive/scripts/build_reference_data.py
+```
+
+这个脚本会先检查 PDF 是否可搜索，再提取 `handbook_raw.md`，尝试抽取第 1-150 条规则，生成索引和常见引注类型规则，最后自动运行审计和 self-test。如果 PDF 还是图片扫描件，脚本会停止并提示你先用 WPS/Adobe/OCR 工具转成可搜索 PDF。已有本地参考文件时，脚本默认不会覆盖；确认要重建时再加 `--force`。
+
+成功后本机会生成：
 
 ```text
 skills/legal-citation-comprehensive/references/handbook_raw.md
@@ -150,13 +158,24 @@ skills/legal-citation-comprehensive/references/handbook_rule_index.md
 skills/legal-citation-comprehensive/references/citation_rules.json
 ```
 
-最省事的做法是把同版的可搜索 PDF 交给你的 AI，让它按下面这段话处理：
+如果自动抽取失败，先打印严格生成 contract，再交给 AI 修复：
+
+```bash
+python3 skills/legal-citation-comprehensive/scripts/build_reference_data.py --print-ai-contract
+```
+
+也可以把同版的可搜索 PDF 交给你的 AI，让它按下面这段话处理：
 
 ```text
-请先确认这份《法学引注手册（第二版）》PDF 是否可搜索。
-如果它已经可搜索，请直接提取成 Markdown，保存为 handbook_raw.md。
-如果它还是图片扫描件，请提醒我先用 WPS/Adobe/OCR 工具转成可搜索 PDF，不要直接全文消耗 token 识别整本扫描件。
-然后提取第 1-150 条规则，生成 handbook_rule_index.json 和 handbook_rule_index.md。
+请先运行：
+python3 skills/legal-citation-comprehensive/scripts/build_reference_data.py
+
+如果脚本提示 PDF 不可搜索，请提醒我先用 WPS/Adobe/OCR 工具转成可搜索 PDF，不要直接全文消耗 token 识别整本扫描件。
+如果脚本提示规则抽取不完整，请运行：
+python3 skills/legal-citation-comprehensive/scripts/build_reference_data.py --print-ai-contract
+然后严格按 contract 修复本地参考数据。
+
+目标是提取第 1-150 条规则，生成 handbook_rule_index.json 和 handbook_rule_index.md。
 JSON 每条规则至少包含 rule_number、title、category、text、raw_start_line、raw_end_line。
 再根据常见引注类型生成 citation_rules.json，包含 types、required、optional、template、anchors、lookup_guidance。
 不要改写规则含义；OCR 不清楚的地方请标 [待核: OCR]。

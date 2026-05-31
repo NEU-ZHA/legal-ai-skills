@@ -125,9 +125,25 @@ For any source type not explicitly represented in `citation_rules.json`, search 
 - `references/citation_handbook_structured.md`: structured digest of the handbook.
 - `assets/Law_Journal_Citation_Handbook_2025.pdf`: original handbook PDF for final verification when needed.
 
+## Reference Data Build
+
+When a user has their own legally obtained copy of the handbook PDF, prefer the deterministic local builder before asking an AI to improvise the reference files:
+
+```bash
+python3 scripts/build_reference_data.py
+```
+
+The builder checks whether the PDF is searchable, extracts local Markdown, builds the 1-150 rule index, writes `citation_rules.json`, and then runs validation. If it refuses to overwrite existing files, rerun with `--force` only after the user confirms they want to rebuild local reference data. If extraction is incomplete, run:
+
+```bash
+python3 scripts/build_reference_data.py --print-ai-contract
+```
+
+Then use the printed contract to repair the local files.
+
 ## Reference Data Audit
 
-When a user rebuilds handbook reference data from their own PDF/OCR, do not trust the generated files merely because they exist. Run:
+When a user rebuilds handbook reference data from their own PDF/OCR, do not trust the generated files merely because they exist. If the builder was not used, run:
 
 ```bash
 python3 scripts/audit_reference_data.py

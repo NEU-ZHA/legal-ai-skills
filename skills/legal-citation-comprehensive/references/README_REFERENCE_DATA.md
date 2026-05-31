@@ -21,7 +21,30 @@ references/handbook_rule_index.md
 references/citation_rules.json
 ```
 
-Recommended conversion workflow:
+Recommended automatic workflow:
+
+```bash
+python3 scripts/build_reference_data.py
+```
+
+Run that command from `skills/legal-citation-comprehensive`. From the repository root, use:
+
+```bash
+python3 skills/legal-citation-comprehensive/scripts/build_reference_data.py
+```
+
+The builder checks whether the PDF is searchable, extracts `handbook_raw.md`,
+builds the 1-150 rule index, writes the readable Markdown index and basic
+`citation_rules.json`, then runs the audit and self-test. It refuses to
+overwrite existing local reference files unless you pass `--force`.
+
+If automatic extraction is incomplete, print the strict AI repair contract:
+
+```bash
+python3 scripts/build_reference_data.py --print-ai-contract
+```
+
+Manual conversion workflow:
 
 1. Confirm the handbook PDF is searchable. If it is image-only, OCR it into a searchable PDF first.
 2. Extract the searchable PDF into `references/handbook_raw.md`.
