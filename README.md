@@ -107,7 +107,7 @@ PKULaw/北大法宝相关 skills 适合已经有学校或机构访问权限、�
 | 检查法律分析有没有编造 | `legal-fact-checker` | 草稿文本；相关法条、案例、PDF、网页链接或数据库截图 | 让 AI 标 `[待补: 来源]`，不要让它凭记忆补 |
 | 检查、补全、统一脚注 | `legal-citation-comprehensive` | 脚注文本；原始 PDF、网页、数据库结果、页码；如果要严格按手册全量核验，再准备同版《法学引注手册（第二版）》PDF 和本地规则索引 | 缺页码/案号/出版社等信息时，用 `[待补: ...]`；没有手册索引时，仍可先做类型判断和缺项提示，但不能声称完成手册全量核验 |
 | 把核验后的引注写进 Word 脚注 | `legal-citation-automator` | `.docx` 草稿；已经核验过的引注清单或 JSON；最好先跑 `legal-citation-comprehensive` | 还有 `[待补: ...]` 时先不要自动写入正式脚注 |
-| 排版法学作业、legal writing 或其他课程文书 | `legal-homework-formatter` | 作业说明；草稿；课程/机构模板；姓名、学号、课程名、日期等身份字段 | 没有课程模板时可用内置匿名模板；缺身份字段时让 AI 先问你 |
+| 排版法学作业、legal writing 或其他课程文书，生成/修复目录 | `legal-homework-formatter` | 作业说明；草稿；课程/机构模板；姓名、学号、课程名、日期等身份字段；需要目录时说明标题层级 | 没有课程模板时可用内置匿名模板；缺身份字段时让 AI 先问你；目录真实页码以 Word 更新域为准 |
 | 生成证据目录 | `evidence-catalog-generator` | 证据材料、文件名、材料说明或条目表；最好提供自己的证据目录 `.docx` 模板 | 没模板时生成通用证据目录；缺证明事项/页码时标 `[待补: ...]` |
 | 查法规、法条、案例并回源 | `pkulaw-*` | 北大法宝账号/学校或机构权限；有效 token；你已开通/购买的 MCP 服务名称或截图 | 让 AI 先根据购买信息选择要安装的 MCP；高级 MCP 没订阅时不要硬用，转已开通的 MCP 或 `pkulaw-legal-search` 浏览器兜底 |
 | 编辑、抽取、检查 Word/DOCX | `docx-editing`、`docx-cn`、`docx-toolkit`、`legal-toa-formatter` | 待处理 `.docx`；必要时提供原始模板或修改前版本 | 复杂修订/红线优先保留备份；格式异常时先让 AI 做兼容性检查 |
@@ -237,7 +237,7 @@ Before configuration, ask which MCP services the user has purchased or enabled. 
 | `legal-fact-checker` | 法律产出事实核查，防止编造法律、案例、事实 | Fact-check legal outputs and prevent fabricated laws, cases, or facts |
 | `legal-citation-comprehensive` | 法学引注诊断、补全、格式化；缺信息时输出占位符 | Diagnose, complete, and format legal citations with placeholder-safe missing elements |
 | `legal-citation-automator` | 把已核验引注写入 DOCX 脚注 | Insert verified citations into DOCX footnotes |
-| `legal-homework-formatter` | 法学作业 Word 格式处理；公开版会询问姓名/学号 | Format legal homework DOCX files; public version asks for user identity fields |
+| `legal-homework-formatter` | 法学作业 Word 格式处理，支持目录生成/修复；公开版会询问姓名/学号 | Format legal homework DOCX files, including TOC generation/repair; public version asks for user identity fields |
 | `legal-toa-formatter` | Table of Authorities 点号填充与对齐 | Format Table of Authorities dot leaders |
 | `evidence-catalog-generator` | 整理用户提供的证据材料，并填入证据目录模板 | Organize user-provided evidence materials into an evidence catalog template |
 

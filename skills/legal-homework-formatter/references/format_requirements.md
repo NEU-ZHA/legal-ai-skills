@@ -50,21 +50,43 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 
 ---
 
-## 二、正文格式
+## 二、目录格式
 
-### 2.1 字体与字号
+当作业要求目录，或用户明确要求生成/修复目录时：
+
+- 使用干净的 Word TOC 域：`TOC \o "1-3" \h \z \u`
+- 使用 `TOC10` 作为“目录”标题样式，使用 `TOC1`、`TOC2`、`TOC3` 作为三级目录项样式
+- 静态预览条目必须显式加入右对齐点引导线 tab：`w:val="right"`、`w:leader="dot"`、`w:pos="8296"`
+- `TOC2` 保留二级缩进：`w:left="420"` / `w:leftChars="200"`
+- `TOC3` 保留三级缩进：`w:left="840"` / `w:leftChars="400"`
+- 不复制旧模板里的 `PAGEREF _Toc...` 预览项；这些旧锚点可能在新文档中不存在
+- 不设置 `w:updateFields=true`，避免 Word 打开时弹出更新域提示
+- 标题页和“目录”留在第一页；正文第一页通过首个正文段落的 `<w:pageBreakBefore/>` 开始
+- 静态预览页码只是占位和视觉预览，最终页码以 Word 更新域后的结果为准
+
+可使用脚本：
+
+```bash
+python3 scripts/add_homework_toc.py input.docx template.docx output.docx
+```
+
+---
+
+## 三、正文格式
+
+### 3.1 字体与字号
 - **中文字体：** 宋体 (SimSun)
 - **英文字体：** Times New Roman
 - **字号：** 五号（10.5pt, sz=21半磅）
 - **OOXML 正文 run:** `<w:rPr><w:rFonts w:hint="eastAsia"/></w:rPr>` (sz 由 Normal 样式继承)
 
-### 2.2 段落格式
+### 3.2 段落格式
 - **行距：** 1.25倍行距 (line=300, Normal 样式默认)
 - **首行缩进：** 2字符 (firstLine=420 twips)
 - **段后距：** 156 twips（生成提交稿时显式设置；虽然 Normal 样式可见 after=50，但参考模板的实际正文段落实例使用 after=156）
 - **对齐：** 两端对齐 (both, Normal 样式默认)
 
-### 2.3 样式引用 (OOXML)
+### 3.3 样式引用 (OOXML)
 - **正文段落：** 不设 pStyle (自动继承 Normal/`a`)
 - **基于用户提供的课程参考模板**
 - **Normal (styleId="a"):** sz=21, line=300, after=50 (afterLines=50), firstLine=200 (firstLineChars=200)
@@ -76,9 +98,9 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 
 ---
 
-## 三、脚注格式
+## 四、脚注格式
 
-### 3.1 样式定义 (基于参考模板)
+### 4.1 样式定义 (基于参考模板)
 
 | 元素 | OOXML 样式 | 字号 |
 |------|-----------|------|
@@ -89,7 +111,7 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 
 **课程助教批注口径：** 脚注小五，左对齐，段前后距0行，单倍行距，首行不缩进；脚注中的数字使用 Times New Roman，中文使用宋体。
 
-### 3.2 脚注编号
+### 4.2 脚注编号
 - 使用阿拉伯数字：1、2、3...
 - 编号位于右上角，作为上标
 - **⚠️ rStyle 必须为 `"ab"` (footnote reference)**，不能为 `"aa"` (Hyperlink)
@@ -99,7 +121,7 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 - 参考模板中的示例普通脚注 ID 为 `1`；因此普通脚注 ID `1` 本身是合法的
 - 自动生成或修复混乱文档时，可以让新增/替换的普通脚注从 `4` 开始。这是兼容性补丁，不是模板硬性要求；好处是避开旧脚本或其他 AI 生成器可能误用的低 ID 区间
 
-### 3.3 脚注 XML 结构
+### 4.3 脚注 XML 结构
 ```xml
 <w:footnote w:id="4">
   <w:p>
@@ -113,14 +135,14 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 </w:footnote>
 ```
 
-### 3.4 脚注引号与字号
+### 4.4 脚注引号与字号
 
 - 脚注中的中文引号必须使用弯引号：外层 `“”`，内层 `‘’`。
 - 例：`参见《德国民法总则编典型判例17则评析》判例十三“违反‘打黑工’禁令的合同”，《联邦最高法院民事裁判集》第89卷，第369页以下。`
 - 如果引号规范化工具把引号拆成独立 run，必须检查这些 run 是否仍为脚注字号：`w:sz="18"`、`w:szCs="18"`。
 - 脚注中的独立引号 run 推荐显式设置：`w:ascii="宋体" w:hAnsi="宋体" w:eastAsia="宋体"`，防止 Word/WPS 将其渲染成英文字体或正文字号。
 
-### 3.5 脚注分隔符
+### 4.5 脚注分隔符
 ```xml
 <w:footnote w:type="separator" w:id="-1">
   <w:p><w:pPr><w:spacing w:after="120"/><w:ind w:firstLine="420"/></w:pPr>
@@ -134,9 +156,9 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 
 ---
 
-## 四、法律文件引用格式
+## 五、法律文件引用格式
 
-### 4.1 第一次引用法律文件
+### 5.1 第一次引用法律文件
 **格式：** 使用全称，括注简称
 
 **示例：**
@@ -145,10 +167,10 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 《最高人民法院关于适用〈中华人民共和国民法典〉总则编若干问题的解释》（以下简称《民法典总则编司法解释》）第19条。
 ```
 
-### 4.2 后续引用法律文件
+### 5.2 后续引用法律文件
 **格式：** 直接使用简称
 
-### 4.3 引用具体条文
+### 5.3 引用具体条文
 - 条文序数使用阿拉伯数字
 - 款项序数也使用阿拉伯数字
 - 正文直接引用法条原文时用引号，脚注不加"参见"
@@ -156,7 +178,7 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 - 正文仅出现法条编号而未列明法条内容时，应在脚注中列明法条全文，例如：`《中华人民共和国民法典》第153条：“……”`
 - 引用条文应尽量精确到条、款、项、句
 
-### 4.4 重复引用同一法条
+### 5.4 重复引用同一法条
 - ❌ 不写"前引"或"同上"
 - ✅ 可直接重复简称法条信息，例如：`《民法典》第153条第1款。`
 - ✅ 若课程作业脚注已经首次完整列明法条全文，后续可写：`同前注1。`或`同前注〔1〕。`
@@ -164,26 +186,26 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 
 ---
 
-## 五、页面设置
+## 六、页面设置
 
-### 5.1 纸张大小
+### 6.1 纸张大小
 - A4纸张 (w=11906, h=16838 twips)
 
-### 5.2 页边距
+### 6.2 页边距
 - 上：1440 twips (1 inch / 2.54cm)
 - 下：1440 twips (1 inch / 2.54cm)
 - 左：1800 twips (1.25 inch)
 - 右：1800 twips (1.25 inch)
 
-### 5.3 页码
+### 6.3 页码
 - 位置：页面底端居中
 - 格式：阿拉伯数字
 
 ---
 
-## 六、常见问题
+## 七、常见问题
 
-### 6.1 全文显示二号字
+### 7.1 全文显示二号字
 **原因：** 正文段落使用了 `pStyle="1"`，但旧模板中 styleId="1" 是 heading 1 (sz=44/二号)
 
 **解决：** 
@@ -191,12 +213,12 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 - 正文不设 pStyle，由 Normal (styleId="a", sz=21) 继承
 - 正文 run 不设 sz，从段落样式自然继承
 
-### 6.2 脚注编号过大/不是上标
+### 7.2 脚注编号过大/不是上标
 **原因：** footnoteReference 的 rStyle 被错误设为 "aa" (Hyperlink) 或 "17" (旧模板)
 
 **解决：** 使用参考模板的 rStyle="ab" (footnote reference character style)
 
-### 6.3 WPS和Word显示脚注不一致
+### 7.3 WPS和Word显示脚注不一致
 **原因：** 脚注引用 ID 与 `footnotes.xml` 定义不匹配，或其他生成器把分隔符/普通脚注放进互相冲突的低 ID 区间
 
 **解决：**
@@ -204,19 +226,19 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 - 若是自动生成、批量替换或修复来源不明的 docx，普通脚注可从 `4` 开始作为保守兼容策略
 - 最终必须检查：`document.xml` 中每个 `footnoteReference w:id="X"` 都在 `footnotes.xml` 中有对应 `<w:footnote w:id="X">`
 
-### 6.4 章节标题自动添加编号
+### 7.4 章节标题自动添加编号
 **原因：** heading 样式 (1, 2, 3) 自带 numPr (自动编号)
 
 **解决：** 如需手动编写标题文字（如"一、菜单案"），从 styles.xml 中移除 heading 样式的 numPr
 
-### 6.4.1 标题出现"一、一、"重复编号
+### 7.4.1 标题出现"一、一、"重复编号
 **原因：** 同时使用手写中文编号和模板 heading 自动编号
 
 **解决：**
 - 作业正文通常保留手写标题编号（便于纯文本和批注识别）
 - 在生成最终 docx 时移除 styles.xml 中 heading 1/2/3 的 `<w:numPr>`，保留字号、加粗等其他样式属性
 
-### 6.5 Pandoc 转写后标题变蓝/变绿
+### 7.5 Pandoc 转写后标题变蓝/变绿
 **原因：** Markdown/Pandoc 转 DOCX 时常把标题段落写成 Word 内置 `Heading1`、`Heading2` 或 `Title`，并通过主题色、highlight、shading 或自动编号继承视觉样式。之后即使直接改字号，Word 仍可能按内置标题样式显示为蓝色、绿色或带项目符号。
 
 **解决：**
@@ -226,7 +248,7 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 - 直接写入黑色 `<w:color w:val="000000"/>`，并按标题层级设置字号和加粗；
 - 最后运行 `scripts/docx_compat_check.py`，若仍提示 Pandoc/Word heading styles，继续清理后再交付。
 
-### 6.6 中文字体不显示为宋体
+### 7.6 中文字体不显示为宋体
 **原因：** 未正确设置 docDefaults 的 eastAsia theme font，或 run rPr 覆盖了字体
 
 **解决：** 
@@ -234,7 +256,7 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 - 参考模板的 theme 文件定义了 minorEastAsia = 宋体
 - 正文 run 仅设 `<w:rFonts w:hint="eastAsia"/>` 触发 East Asian font
 
-### 6.7 脚注引号变成正文字号
+### 7.7 脚注引号变成正文字号
 **原因：** 引号规范化脚本可能把 `“”‘’` 拆成独立 run，并继承正文五号或其他默认字号
 
 **解决：**
@@ -245,11 +267,11 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 
 ---
 
-## 七、参考资料
+## 八、参考资料
 
-### 7.1 核心参考模板
+### 8.1 核心参考模板
 用户提供的课程参考模板 — 课程特定格式的权威来源。公开仓库不随附私人课程模板。
 
-### 7.2 关键标准
+### 8.2 关键标准
 - 《法学引注手册》
 - 用户提供的课程 PPT 或作业格式说明

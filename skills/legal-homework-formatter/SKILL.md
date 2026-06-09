@@ -1,6 +1,6 @@
 ---
 name: legal-homework-formatter
-description: 用于处理中国法学作业的格式调整。当用户需要创建或修改法学作业 Word 文档，特别是涉及脚注格式、法律文件引用格式、标题格式调整时使用此 skill。必须先询问并确认姓名、学号、课程模板等个人/课程信息；不得默认填入维护者或示例个人信息。触发词：作业格式、Word格式、脚注格式、标题对齐、段落格式、法学作业。
+description: 用于处理中国法学作业的格式调整。当用户需要创建或修改法学作业 Word 文档，特别是涉及脚注格式、法律文件引用格式、标题格式调整、目录生成/修复时使用此 skill。必须先询问并确认姓名、学号、课程模板等个人/课程信息；不得默认填入维护者或示例个人信息。触发词：作业格式、Word格式、脚注格式、标题对齐、段落格式、目录、TOC、法学作业。
 ---
 
 # Legal Homework Formatter
@@ -16,6 +16,7 @@ Use this skill when:
 - Formatting existing homework to meet citation standards
 - Fixing footnote display issues between WPS and Word
 - Adjusting title, heading, or citation formats
+- Generating or repairing a homework table of contents (目录/TOC)
 - Converting draft content to properly formatted legal documents
 
 ## Privacy and Required Inputs
@@ -71,6 +72,11 @@ When the user asks to "strictly follow the homework skill" or provides the cours
   This bug appeared in a 2026-05-27 Word check: Pandoc's heading style survived OOXML post-processing, so Word displayed the main title and headings in blue-green and with black bullet markers even though font/size had been overwritten.
 - After running any quote normalizer, re-check footnotes: standalone curly quote runs in footnotes may accidentally inherit body size. Force footnote quote runs (`“”‘’`) back to 小五 (`w:sz=18`) and 宋体.
 - Do not save a finished footnoted document with `python-docx` after manually editing footnotes unless you have verified `word/footnotes.xml` and `footnoteReference` markers are preserved. Prefer ZIP/XML surgery for final footnote and quote fixes.
+- The homework template may include Chinese TOC styles. To add a directory, use the template's TOC styles and a clean Word field, but do not copy dirty old preview entries such as `PAGEREF _Toc...`.
+- For Word compatibility, do not set `<w:updateFields w:val="true"/>` just to force TOC updates. Word will show a field-update prompt. Also avoid copying a template's whole `w:sdt` TOC content-control shell into generated files unless you have verified Word opens without repair prompts. Prefer clean ordinary TOC field paragraphs plus static preview entries.
+- Preserve WordprocessingML child order in generated paragraph properties. Word may show "unreadable content" even when ZIP/XML parsing succeeds if, for example, `w:spacing` appears before `w:tabs` in a TOC entry or `w:pageBreakBefore` is inserted before `w:pStyle`.
+- Homework TOC layout: the document title and `目录` stay on the first page; the main body starts on the next page by setting `w:pageBreakBefore` on the first body paragraph, not by inserting a visible `<w:br w:type="page"/>`.
+- Heading detection for TOC must use both style and text structure. Existing styles `1/2/3` are strong clues but not always trustworthy because users often hand-format titles. Confirm with text patterns like `一、`, `（一）`, and `1.` before including a paragraph in the TOC.
 
 ## Style System (OOXML Reference)
 
@@ -85,6 +91,10 @@ Based on the reference template's `styles.xml`:
 | `2` | heading 2 | 24 (小四号/12pt) | 二级标题 | Yes | keepNext, keepLines, numPr (auto "（一）") |
 | `3` | heading 3 | 21 (五号) | 三级标题 | Yes | keepNext, keepLines |
 | `a7` | footnote text | 18 (小五号/9pt) | 脚注文本 | No | line=240 (单倍), left aligned |
+| `TOC10` | TOC 标题1 | 28 (四号/14pt) | 目录标题 | No | centered, black |
+| `TOC1` | toc 1 | 21/22-ish | 一级目录项 | No | right tab with dot leader when generated |
+| `TOC2` | toc 2 | 21/22-ish | 二级目录项 | No | indented TOC item |
+| `TOC3` | toc 3 | 21/22-ish | 三级目录项 | No | further indented TOC item |
 
 ### Character Styles
 
@@ -218,7 +228,64 @@ Use the reference template as the ZIP base. Key principles:
 - **二级标题**（左对齐）: `（一）XXX`, `（二）XXX`, 小四号, pStyle="2"
 - **三级标题及以下**: 五号, pStyle="3"
 
-### Step 4: Legal Citation Format
+### Step 4: Homework Table of Contents (目录)
+
+Use this step when the user asks for `目录`, `TOC`, "做目录", or when the assignment/template clearly expects a directory.
+
+**Core strategy**
+- Use the homework template's `TOC10`, `TOC1`, `TOC2`, and `TOC3` styles when they are available.
+- Insert a clean ordinary Word TOC complex field: `TOC \o "1-3" \h \z \u`.
+- Generate static preview TOC entries from detected headings; Word/WPS can later update page numbers.
+- Keep the TOC field clean, but generate static preview entries with `TOC1/TOC2/TOC3` style plus a paragraph-level right-aligned dot-leader tab stop at `w:pos="8296"`. Some templates have `TOC2/TOC3` indentation but no dot-leader tab, which makes preview page numbers appear beside the heading until Word updates the field.
+- Preserve untouched DOCX parts byte-for-byte when possible. If the document already has required TOC/heading styles and no `updateFields`, avoid rewriting unrelated parts.
+- Do not copy old `PAGEREF _Toc...` preview entries from a template; they may refer to missing bookmarks and produce Word errors.
+- Do not set `w:updateFields=true` in `word/settings.xml`; it causes Word to ask whether to update fields.
+- Do not copy a whole `w:sdt` content-control TOC wrapper unless you have verified Word opens without repair prompts. A plain TOC field is safer.
+
+**TOC page layout**
+- Keep the document title and `目录` on the first page.
+- Start the body on the next page by adding `<w:pageBreakBefore/>` to the first body paragraph.
+- Avoid inserting a visible page-break run (`<w:br w:type="page"/>`) after the TOC because Quick Look/Word may display a stray square or layout artifact.
+
+**Heading detection and repair**
+- TOC levels map to common template styles:
+  - `一、...`, `二、...` -> heading style `1` -> `TOC1`
+  - `（一）...`, `（二）...` -> heading style `2` -> `TOC2`
+  - independent `1. ...`, `2. ...` -> heading style `3` -> `TOC3`
+- Do not blindly trust existing Word styles. Users often hand-format headings, and converted documents may misuse styles.
+- Use a double check:
+  - If style `1/2/3` and text numbering agree, include it directly.
+  - If style is missing but the paragraph is clearly a heading, add the correct heading style before generating TOC.
+  - If a paragraph has heading style but text does not look like a heading, do not include it; consider downgrading it to body style.
+  - If uncertain, leave it out and report it as "需人工确认标题".
+- Only include levels 1-3 by default. Do not include fourth-level or lower material; homework TOCs get too dense quickly.
+
+**Validation**
+- Verify exactly one `TOC \o "1-3" \h \z \u` field exists when a TOC is requested.
+- Verify `PAGEREF`, `_Toc...` anchors, and missing bookmarks are not present in the generated preview entries.
+- Verify generated `w:pPr` child order, especially `w:pStyle` before `w:pageBreakBefore`, and `w:tabs` before `w:spacing`.
+- Verify `mc:Ignorable` prefixes are declared and `w:rPr` child order is valid. Running `docx_compat_check.py` is useful; a repaired Word sample should not have undefined-prefix or `rFonts` ordering errors.
+- Verify body `footnoteReference` IDs and footnote text payload are unchanged unless the task also asked for footnote work. Byte-for-byte `word/footnotes.xml` equality may change if namespace prefixes are normalized to satisfy Word.
+- Open in Word as well as WPS when possible. If Word reports "unreadable content", first check `mc:Ignorable` undefined prefixes, `w:rPr` order, and `w:pPr` child order, then rebuild the TOC as clean plain field paragraphs and remove `updateFields`.
+
+For a deterministic helper, use:
+
+```bash
+python3 scripts/add_homework_toc.py input.docx template.docx output.docx
+```
+
+### Lessons From the 2026-06-09 TOC Regression Test
+
+A regression test found that an automatically generated static TOC preview could differ from the TOC after Word updated the field: level-2 page numbers appeared immediately after the heading text instead of right-aligned with dot leaders. The cause was that the template's `TOC2/TOC3` styles carried indentation but no right-aligned dot-leader tab. Word adds or normalizes the tab stop when the field is updated, so a static preview must add it explicitly.
+
+Current TOC generation rule:
+- Insert one clean `TOC \o "1-3" \h \z \u` field, but do not set `updateFields=true`.
+- For every static preview entry, set `TOC1/TOC2/TOC3` style and a paragraph-level right-aligned dot-leader tab stop at `w:pos="8296"`.
+- Preserve level indentation: `TOC2` uses `w:left="420"` / `w:leftChars="200"`; `TOC3` uses `w:left="840"` / `w:leftChars="400"`.
+- Normalize `w:pPr` child order automatically. Old or generated homework files may have `w:ind` before `w:spacing`; the helper must reorder rather than fail.
+- Validation target: generated preview should visually resemble the Word-updated TOC, while real page numbers may still require manual field update in Word.
+
+### Step 5: Legal Citation Format
 
 **脚注必要性原则**：
 - 正文已完整引用法条原文 + 脚注无进一步说明 → **不设脚注**（脚注无增量信息）
@@ -246,7 +313,7 @@ Use the reference template as the ZIP base. Key principles:
 - Case citations: full name on first use, full footnote format
 - 司法解释: single书名号 〈〉 inside double for nested references
 
-### Step 5: Verify Formatting
+### Step 6: Verify Formatting
 
 Checklist:
 1. Title format: correct user-confirmed date prefix, name, student ID or explicit placeholders, centered, sz=30
@@ -257,8 +324,9 @@ Checklist:
 6. Footnote quote runs: all `“”‘’` in footnotes are 宋体 and sz=18
 7. All footnote IDs unique; template-style regular ID `1` is valid, while generated replacement notes may safely start at `4`
 8. Heading styles do not auto-number if headings are manually numbered
-9. Page numbers: bottom center when required by assignment length
-10. Open in both WPS and Word to verify
+9. TOC requested: clean `TOC \o "1-3" \h \z \u` field, right-aligned dot leaders on preview entries, no stale `PAGEREF _Toc...` references
+10. Page numbers: bottom center when required by assignment length
+11. Open in both WPS and Word to verify
 
 ## Important Notes
 
@@ -272,12 +340,14 @@ Checklist:
 8. **Use ID 4+ only as a safe generation convention**: helpful when replacing all notes or repairing documents created by other tools, but not required by OOXML or the course template
 9. **Remove numPr from heading styles if using manual heading numbers**: otherwise auto-numbering conflicts
 10. **Remove each-page footnote restart**: the course template may contain `<w:numRestart w:val="eachPage"/>`; delete it for continuous homework footnotes
-11. **Verify in both WPS and Word**: these applications handle certain features differently
+11. **TOC static preview is not the authority for final page numbers**: generate a clean preview with dot leaders, then let Word update the field for final pagination
+12. **Verify in both WPS and Word**: these applications handle certain features differently
 
 ## Bundled Resources
 
 ### Scripts
 - `scripts/add_footnotes.py`: Footnote automation utilities
+- `scripts/add_homework_toc.py`: add or rebuild a clean Word-compatible homework TOC with right-aligned dot leaders
 - `scripts/fix_pandoc_heading_artifacts.py`: remove Pandoc/Word `Heading1`/`Heading2`/`Title` styles, theme colors, highlighting, shading, and auto-numbering from homework titles/headings
 - `scripts/docx_compat_check.py`: final Word/WPS compatibility check, including stale namespace and Pandoc heading-style warnings
 
