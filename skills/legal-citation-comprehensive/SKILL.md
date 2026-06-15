@@ -91,9 +91,20 @@ When responding to a user, use this shape unless they ask for something else:
 - Cases: include case name, court, docket number, and document type unless citing a special source such as a bulletin or guiding case.
 - Chinese repeat citations use `同前注〔X〕，第Y页。` or a clear short form. Do not use `前引`, `同上`, `supra`, or `Ibid.` for Chinese sources.
 - Direct quotation: no `参见`; indirect or conceptual borrowing: use `参见`; secondary citation: use `转引自`.
+- Statute quotation vs paraphrase: if a footnote says `第X条规定，...`, first decide whether the following words are the statute's original text. If yes, use `第X条规定：“……”`; if no, rewrite as a paraphrase such as `依第X条，可以说明……` or `参见第X条` and do not make the paraphrase look like quoted law text.
 - Multiple sources supporting the same sentence or proposition belong in one footnote, separated by semicolons. Do not create two adjacent footnotes at the same sentence-final position merely because there are two sources.
 - Use separate footnotes only when the sentence has distinct citation anchors, such as one statute supporting the first clause and another statute supporting a later clause. In that case, place each footnote immediately after the specific article, claim, or clause it supports.
 - Explanatory notes are allowed when they explain the cited source's relevance, but do not hide major legal reasoning in a citation footnote. If the explanation is doing argumentative work, move it into the body and leave the footnote mostly as source support.
+
+## Statute Original Text vs Paraphrase
+
+Legal article footnotes often fail when an agent writes a paraphrase as if it were the statute's exact words. Apply this gate before finalizing any statute footnote:
+
+- Exact or near-exact statutory text: use a colon and Chinese quotation marks.
+  - Shape: `《上海市城市管理综合行政执法条例》第11条第2款规定：“……”`
+- Paraphrase or synthesis: do not use `规定，...` followed by an unquoted sentence. Use `依/根据/参见` and make clear that the writer is summarizing.
+  - Shape: `参见《上海市城市管理综合行政执法条例》第11条第2款。依该款，街道办事处具体实施哪些行政执法事项，应以市人民政府确定并公布的事项为准。`
+- If the agent cannot verify the wording against an official source, do not add quotation marks around invented text. Mark `[待补: 条文原文]` or keep the note as a clearly labeled paraphrase.
 
 ## Footnote Bundling and Placement
 

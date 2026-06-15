@@ -153,6 +153,9 @@ def test_missing_content_placeholders():
     assert_true(any("条文全文" in warning for warning in report["warnings"]), "statute citation should warn about article text when needed")
     assert_true(any("PKULaw" in item or "法条" in item for item in report["lookup_guidance"]), "statute lookup should point to legal text source")
 
+    report = mod.diagnose_one("《上海市城市管理综合行政执法条例》第11条第2款规定，街道办事处具体执法事项由市人民政府确定。", rules)
+    assert_true(any("第X条规定" in warning for warning in report["warnings"]), "statute paraphrase should warn when it looks like unquoted original text")
+
 
 def main() -> int:
     tests = [

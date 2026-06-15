@@ -33,6 +33,8 @@ This file is for agents that are not careful enough by default. Follow it litera
 7. For course Civil Law homework, statute footnotes have special handling.
    - If正文 only mentions a law article number, include article text in the footnote.
    - If正文 already quotes the full article and the footnote adds no new information, omit the footnote.
+   - If a note says `第X条规定，...`, decide whether the following words are official article text. Exact text must use `规定：“……”`; paraphrase must be rewritten as `依/根据/参见第X条，可以说明……`.
+   - Never put quotation marks around guessed statute text. If the original wording is not verified, write `[待补: 条文原文]` or keep the note as a paraphrase.
 
 8. Bundle sources at the correct citation point.
    - If several sources support the same sentence or proposition, put them in one footnote separated by semicolons.
@@ -84,3 +86,7 @@ If there is no missing element, replace the last section with:
 
 - Wrong: finalizing a statute citation for Civil Law homework with only `《民法典》第153条。` when正文 does not quote the article.
 - Right: retrieve and include the article text, or mark `[待补: 条文全文]`.
+
+- Wrong: `《上海市城市管理综合行政执法条例》第11条第2款规定，街道办事处具体执法事项由市人民政府确定。`
+- Right if exact text is verified: `《上海市城市管理综合行政执法条例》第11条第2款规定：“……”`
+- Right if paraphrasing: `参见《上海市城市管理综合行政执法条例》第11条第2款。依该款，街道办事处具体实施哪些行政执法事项，应以市人民政府确定并公布的事项为准。`

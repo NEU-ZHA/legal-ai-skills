@@ -345,6 +345,12 @@ def warnings_for(citation_type: str, text: str, elements: dict[str, str]) -> lis
         warnings.append("民法作业中，如果正文只写法条编号，脚注应补足条文全文。")
     if "参见" in text and re.search(r"[“\"].+[”\"]", text):
         warnings.append("直接引用原文通常不用“参见”；概括转述才用“参见”。")
+    statute_says_without_quotes = re.search(
+        r"第\d+条(?:之[一二三四五六七八九十]+)?(?:第\d+款)?(?:第\d+项)?规定[，,](?![“\"'])",
+        text,
+    )
+    if citation_type == "statute" and statute_says_without_quotes:
+        warnings.append("脚注写“第X条规定，...”时要先核验后文是否为法条原文：原文应改用冒号和中文引号；概括转述应改为“依/根据/参见第X条，可以说明……”。")
     return warnings
 
 
