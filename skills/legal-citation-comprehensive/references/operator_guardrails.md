@@ -34,6 +34,12 @@ This file is for agents that are not careful enough by default. Follow it litera
    - If正文 only mentions a law article number, include article text in the footnote.
    - If正文 already quotes the full article and the footnote adds no new information, omit the footnote.
 
+8. Bundle sources at the correct citation point.
+   - If several sources support the same sentence or proposition, put them in one footnote separated by semicolons.
+   - Do not create adjacent footnotes after the same punctuation.
+   - Use separate footnotes only when each source supports a distinct clause, article, or proposition; place each marker immediately after that specific anchor.
+   - If a footnote explanation is doing legal reasoning, move that reasoning into the body and keep the footnote focused on source support.
+
 ## Required Output Template
 
 ```text

@@ -125,7 +125,12 @@ python3 scripts/add_homework_toc.py input.docx template.docx output.docx
 ```xml
 <w:footnote w:id="4">
   <w:p>
-    <w:pPr><w:pStyle w:val="a7"/></w:pPr>
+    <w:pPr>
+      <w:pStyle w:val="a7"/>
+      <w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>
+      <w:ind w:left="0" w:right="0" w:firstLine="0"/>
+      <w:jc w:val="left"/>
+    </w:pPr>
     <w:r><w:rPr><w:rStyle w:val="ab"/></w:rPr><w:footnoteRef/></w:r>
     <w:r><w:t xml:space="preserve"> </w:t></w:r>
     <w:r><w:rPr><w:rFonts w:hint="eastAsia"/></w:rPr>
@@ -141,6 +146,8 @@ python3 scripts/add_homework_toc.py input.docx template.docx output.docx
 - 例：`参见《德国民法总则编典型判例17则评析》判例十三“违反‘打黑工’禁令的合同”，《联邦最高法院民事裁判集》第89卷，第369页以下。`
 - 如果引号规范化工具把引号拆成独立 run，必须检查这些 run 是否仍为脚注字号：`w:sz="18"`、`w:szCs="18"`。
 - 脚注中的独立引号 run 推荐显式设置：`w:ascii="宋体" w:hAnsi="宋体" w:eastAsia="宋体"`，防止 Word/WPS 将其渲染成英文字体或正文字号。
+- 写入脚注前必须清理脚注文本首尾空白。脚注编号后可以有一个普通分隔空格，但脚注正文字符串本身不得以空格开头。
+- 同一句同一命题需要多个来源支持时，应合并到一个脚注中，用分号分隔；不要在同一个句末连续生成两个脚注编号。
 
 ### 4.5 脚注分隔符
 ```xml
@@ -264,6 +271,22 @@ python3 scripts/add_homework_toc.py input.docx template.docx output.docx
 - 同时设置 `w:rFonts` 的 `ascii/hAnsi/eastAsia` 为宋体
 - 修正后再用 `unzip -t` 校验 docx 完整性，并检查 `footnoteReference` 是否仍存在
 - 同时检查 `word/document.xml` 和 `word/settings.xml` 中不得残留 `<w:numRestart w:val="eachPage"/>`，否则脚注会每页重新编号
+
+### 7.8 同一句后连续两个脚注编号
+**原因：** AI 把“一个命题由多个来源支持”误拆成了多个脚注，或者 DOCX 插入计划中同一个 anchor 生成了多条 insertion item。
+
+**解决：**
+- 如果多个来源支持同一句、同一事实判断或同一概括观点，把来源合并进一个脚注，用 `；` 分隔。
+- 只有不同来源分别支持不同分句、不同法条或不同论证层次时，才拆成多个脚注，并把脚注标号分别放在对应锚点后。
+- 最终运行 `scripts/docx_compat_check.py`，检查是否出现 `consecutive footnote references` 警告。
+
+### 7.9 脚注编号后出现多余空白
+**原因：** 脚注文本本身以空格开头；如果脚本又在脚注编号后加入正常分隔空格，视觉上就会变成多余缩进。
+
+**解决：**
+- 写入 `footnotes.xml` 前对 `footnote_text` 做 `.strip()`。
+- 保留至多一个编号后的分隔空格；不要让 citation text 自带前置空格。
+- 最终运行 `scripts/docx_compat_check.py`，检查是否出现 `text starts with whitespace` 警告。
 
 ---
 

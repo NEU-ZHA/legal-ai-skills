@@ -22,6 +22,7 @@ Weak-agent guardrail: if any required fact is uncertain, stop. Output a repair c
 2. Prepare a citation insertion plan.
    - Each item must include the exact body text anchor or paragraph/run location.
    - Each item must include final footnote text.
+   - If multiple sources support the same anchor, combine them into one `footnote_text` separated by semicolons. Do not create two insertion items for the same sentence-final anchor.
    - If source facts are missing, stop and return a report instead of editing the DOCX.
 3. Insert footnotes using OOXML, preserving the existing document structure.
 4. Verify:
@@ -61,6 +62,7 @@ Do not modify the DOCX when:
 - the comprehensive skill has not supplied handbook rule numbers;
 - the citation source has not been verified;
 - the anchor appears multiple times and the user has not clarified which instance;
+- two or more insertion items target the same anchor/placement and would create adjacent footnote references; merge them first unless the body text has distinct citation anchors;
 - the source is a PDF/book/article but required bibliographic facts are absent;
 - the requested citation format conflicts with the handbook and no user override is explicit.
 
@@ -81,6 +83,8 @@ Instead, produce a citation repair report using the comprehensive skill output.
 - Never create a body `footnoteReference` without a matching `footnote` definition.
 - Never add footnote definitions without confirming the body reference was actually inserted.
 - If multiple anchors match, pause and ask for clarification.
+- Strip leading/trailing whitespace from every `footnote_text` before writing it to `footnotes.xml`. Keep at most the normal single delimiter space after the footnote number; do not let the citation text itself start with a blank.
+- Do not emit adjacent footnote references after the same punctuation. If a sentence needs two supporting sources, put them in the same footnote separated by `；`.
 - For Civil Law homework, combine with `legal-homework-formatter` so footnote style remains 小五、左对齐、单倍行距、段前后 0、首行不缩进.
 
 ## Relationship to Comprehensive Skill

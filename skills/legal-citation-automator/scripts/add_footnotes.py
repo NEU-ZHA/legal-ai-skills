@@ -262,6 +262,7 @@ class FootnoteAutomator:
     def _add_footnote_content(self, root: ET.Element, footnote_id: int, text: str):
         """添加脚注内容"""
         W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+        text = text.strip()
         footnote = ET.SubElement(root, f'{W}footnote')
         footnote.set(f'{W}id', str(footnote_id))
         
@@ -270,6 +271,17 @@ class FootnoteAutomator:
         pPr = ET.SubElement(p, f'{W}pPr')
         pStyle = ET.SubElement(pPr, f'{W}pStyle')
         pStyle.set(f'{W}val', 'a7')
+        spacing = ET.SubElement(pPr, f'{W}spacing')
+        spacing.set(f'{W}before', '0')
+        spacing.set(f'{W}after', '0')
+        spacing.set(f'{W}line', '240')
+        spacing.set(f'{W}lineRule', 'auto')
+        ind = ET.SubElement(pPr, f'{W}ind')
+        ind.set(f'{W}left', '0')
+        ind.set(f'{W}right', '0')
+        ind.set(f'{W}firstLine', '0')
+        jc = ET.SubElement(pPr, f'{W}jc')
+        jc.set(f'{W}val', 'left')
         
         # 添加脚注引用标记
         r1 = ET.SubElement(p, f'{W}r')

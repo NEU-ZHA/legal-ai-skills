@@ -91,6 +91,19 @@ When responding to a user, use this shape unless they ask for something else:
 - Cases: include case name, court, docket number, and document type unless citing a special source such as a bulletin or guiding case.
 - Chinese repeat citations use `同前注〔X〕，第Y页。` or a clear short form. Do not use `前引`, `同上`, `supra`, or `Ibid.` for Chinese sources.
 - Direct quotation: no `参见`; indirect or conceptual borrowing: use `参见`; secondary citation: use `转引自`.
+- Multiple sources supporting the same sentence or proposition belong in one footnote, separated by semicolons. Do not create two adjacent footnotes at the same sentence-final position merely because there are two sources.
+- Use separate footnotes only when the sentence has distinct citation anchors, such as one statute supporting the first clause and another statute supporting a later clause. In that case, place each footnote immediately after the specific article, claim, or clause it supports.
+- Explanatory notes are allowed when they explain the cited source's relevance, but do not hide major legal reasoning in a citation footnote. If the explanation is doing argumentative work, move it into the body and leave the footnote mostly as source support.
+
+## Footnote Bundling and Placement
+
+When formatting homework or article citations, decide the citation point before writing the footnote:
+
+- Same proposition, several sources: one footnote, sources separated by `；`.
+  - Example shape: `参见作者甲：《文章名》，载《期刊名》2023年第2期，第276页；P. G. Biddle, Tree Root Damage to Buildings, ... p.131.`
+- Different propositions inside one sentence: split the sentence-level anchors and place each footnote after the clause or legal article it supports.
+  - Example shape: `通过《民法典》第580条〔脚注〕处理继续履行排除，通过第583条〔脚注〕处理损害赔偿。`
+- Never output two bracketed footnotes or two DOCX footnote references back-to-back after the same punctuation unless the user explicitly asks to preserve an existing defective draft for comparison.
 
 ## Full Handbook Coverage
 

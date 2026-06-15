@@ -72,6 +72,8 @@ When the user asks to "strictly follow the homework skill" or provides the cours
   This bug appeared in a 2026-05-27 Word check: Pandoc's heading style survived OOXML post-processing, so Word displayed the main title and headings in blue-green and with black bullet markers even though font/size had been overwritten.
 - After running any quote normalizer, re-check footnotes: standalone curly quote runs in footnotes may accidentally inherit body size. Force footnote quote runs (`“”‘’`) back to 小五 (`w:sz=18`) and 宋体.
 - Do not save a finished footnoted document with `python-docx` after manually editing footnotes unless you have verified `word/footnotes.xml` and `footnoteReference` markers are preserved. Prefer ZIP/XML surgery for final footnote and quote fixes.
+- Before writing footnote text into DOCX, strip leading/trailing whitespace from the citation payload. The template may use one normal delimiter space after the footnote number, but the citation text itself must not start with an extra blank.
+- Do not place two footnote references back-to-back after the same sentence-final punctuation. If multiple sources support the same claim, combine them in one footnote separated by `；`; if they support different clauses, place each marker after its own clause or legal article.
 - The homework template may include Chinese TOC styles. To add a directory, use the template's TOC styles and a clean Word field, but do not copy dirty old preview entries such as `PAGEREF _Toc...`.
 - For Word compatibility, do not set `<w:updateFields w:val="true"/>` just to force TOC updates. Word will show a field-update prompt. Also avoid copying a template's whole `w:sdt` TOC content-control shell into generated files unless you have verified Word opens without repair prompts. Prefer clean ordinary TOC field paragraphs plus static preview entries.
 - Preserve WordprocessingML child order in generated paragraph properties. Word may show "unreadable content" even when ZIP/XML parsing succeeds if, for example, `w:spacing` appears before `w:tabs` in a TOC entry or `w:pageBreakBefore` is inserted before `w:pStyle`.
@@ -205,7 +207,12 @@ Use the reference template as the ZIP base. Key principles:
 ```xml
 <w:footnote w:id="4">
   <w:p>
-    <w:pPr><w:pStyle w:val="a7"/></w:pPr>
+    <w:pPr>
+      <w:pStyle w:val="a7"/>
+      <w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>
+      <w:ind w:left="0" w:right="0" w:firstLine="0"/>
+      <w:jc w:val="left"/>
+    </w:pPr>
     <w:r><w:rPr><w:rStyle w:val="ab"/></w:rPr><w:footnoteRef/></w:r>
     <w:r><w:t xml:space="preserve"> </w:t></w:r>
     <w:r><w:rPr><w:rFonts w:hint="eastAsia"/></w:rPr>
@@ -325,8 +332,10 @@ Checklist:
 7. All footnote IDs unique; template-style regular ID `1` is valid, while generated replacement notes may safely start at `4`
 8. Heading styles do not auto-number if headings are manually numbered
 9. TOC requested: clean `TOC \o "1-3" \h \z \u` field, right-aligned dot leaders on preview entries, no stale `PAGEREF _Toc...` references
-10. Page numbers: bottom center when required by assignment length
-11. Open in both WPS and Word to verify
+10. Citation placement: no adjacent footnote references at the same sentence-final position; same-claim multiple sources are bundled with semicolons
+11. Footnote text payloads: no leading/trailing whitespace beyond the normal delimiter after the footnote number
+12. Page numbers: bottom center when required by assignment length
+13. Open in both WPS and Word to verify
 
 ## Important Notes
 
@@ -341,7 +350,8 @@ Checklist:
 9. **Remove numPr from heading styles if using manual heading numbers**: otherwise auto-numbering conflicts
 10. **Remove each-page footnote restart**: the course template may contain `<w:numRestart w:val="eachPage"/>`; delete it for continuous homework footnotes
 11. **TOC static preview is not the authority for final page numbers**: generate a clean preview with dot leaders, then let Word update the field for final pagination
-12. **Verify in both WPS and Word**: these applications handle certain features differently
+12. **Run the compatibility check after footnotes**: `docx_compat_check.py` warns about adjacent footnote references and footnote text that starts with an extra blank
+13. **Verify in both WPS and Word**: these applications handle certain features differently
 
 ## Bundled Resources
 
