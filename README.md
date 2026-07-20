@@ -20,7 +20,33 @@ This repository contains reusable AI-agent skills for legal research, PKULaw MCP
 
 ## 法学生最快上手 / Quick Start for Law Students
 
-如果你只是想尽快用起来，不需要先理解 MCP、脚本或 Git。按下面做：
+如果你只是想尽快用起来，不需要先理解 MCP、脚本或 Git。最省事是直接安装：
+
+```bash
+git clone https://github.com/NEU-ZHA/legal-ai-skills.git && cd legal-ai-skills && python3 scripts/install_skills.py
+```
+
+这会把本仓库 `skills/` 下的所有 skill 安装到默认目录，并自动安装许可证宽松的第三方推荐项。默认目录通常是 `~/.codex/skills`。
+
+如果你确认已经阅读并接受第三方上游项目的许可证限制，想把推荐清单里的项目也一键装上：
+
+```bash
+python3 scripts/install_skills.py --full --accept-restricted-licenses
+```
+
+如果你的 AI 使用别的目录，可以这样改：
+
+```bash
+python3 scripts/install_skills.py --skills-dir ~/.workbuddy/skills
+```
+
+如果不想安装第三方推荐项：
+
+```bash
+python3 scripts/install_skills.py --skip-third-party
+```
+
+如果你不想用命令行，也可以手动安装。按下面做：
 
 1. 在 GitHub 点 `Code` → `Download ZIP`，下载后解压。
 2. 打开解压后的 `skills/` 文件夹。
@@ -91,7 +117,7 @@ AI 通常会自己判断该用哪个 skill。上面这些“请使用 xxx”的�
 
 PKULaw/北大法宝相关 skills 适合已经有学校或机构访问权限、并愿意自行开通/购买对应 MCP 服务的同学。配置时先把已购买服务名称、页面文字或截图给 AI，让它按实际订阅安装；刚开始不知道买什么时，可以先从法规关键词检索、精准法条查找、案例关键词检索三项开始。MCP 检索通常比浏览器兜底快很多。没有 token 或登录权限也可以先不用，优先用上面几个写作、引注和 Word 处理 skill。
 
-如果你还想安装其他作者的优秀法律 skill，本仓库提供一个第三方推荐索引和安装脚本。它只从原作者仓库克隆，不把第三方源码合并进本仓库：
+如果你还想安装其他作者的优秀法律 skill，本仓库提供一个第三方推荐索引和安装脚本。`scripts/install_skills.py` 已经默认安装 Apache-2.0 的推荐项；如果确认许可证后使用 `--full --accept-restricted-licenses`，会从原作者仓库克隆并安装推荐清单里的其他项目，但仍不把第三方源码合并进本仓库：
 
 ```text
 THIRD_PARTY_RECOMMENDED_SKILLS.md
@@ -102,7 +128,7 @@ scripts/install_third_party_skills.py
 最省事的问法：
 
 ```text
-请打开这个仓库的 THIRD_PARTY_RECOMMENDED_SKILLS.md 和 third_party_skills.json，按许可证要求帮我安装推荐的第三方法律 skills。
+请克隆并安装 https://github.com/NEU-ZHA/legal-ai-skills。进入仓库后运行 python3 scripts/install_skills.py；如果我说要安装全量第三方推荐清单，请先解释上游许可证限制，确认后运行 python3 scripts/install_skills.py --full --accept-restricted-licenses。
 ```
 
 ## 还需要准备什么 / What Else You Need
@@ -283,6 +309,38 @@ skills/legal-homework-formatter/references/user_materials_guide.md
 
 ## 安装方式 / Installation
 
+一键安装本仓库 skills，并安装默认第三方推荐项：
+
+Install this repository's skills and the default third-party recommendations:
+
+```bash
+python3 scripts/install_skills.py
+```
+
+安装本仓库 skills 和全部第三方推荐项：
+
+Install this repository's skills and all recommended third-party skills:
+
+```bash
+python3 scripts/install_skills.py --full --accept-restricted-licenses
+```
+
+只安装本仓库 skills：
+
+Install only this repository's skills:
+
+```bash
+python3 scripts/install_skills.py --skip-third-party
+```
+
+安装到其他 agent 技能目录：
+
+Install into another agent skill directory:
+
+```bash
+python3 scripts/install_skills.py --skills-dir ~/.workbuddy/skills
+```
+
 复制需要的 skill 文件夹到你的 agent 技能目录：
 
 Copy the skill folders you need into your agent's skill directory:
@@ -305,7 +363,7 @@ This repository also includes a third-party legal-skill recommendation index so 
 
 ```bash
 python3 scripts/install_third_party_skills.py --list
-python3 scripts/install_third_party_skills.py
+python3 scripts/install_skills.py
 ```
 
 默认只安装 Apache-2.0 项；受限许可项目需要用户明确确认：

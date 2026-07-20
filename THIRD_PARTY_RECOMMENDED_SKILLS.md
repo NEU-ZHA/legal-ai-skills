@@ -12,7 +12,19 @@ This page is a recommendation index, not a mirror of third-party source code. Th
 python3 scripts/install_third_party_skills.py --list
 ```
 
-默认只安装许可证允许自动再分发和改造的项目：
+直接安装本仓库全部 skills，并默认安装许可证允许自动安装的第三方推荐项：
+
+```bash
+git clone https://github.com/NEU-ZHA/legal-ai-skills.git && cd legal-ai-skills && python3 scripts/install_skills.py
+```
+
+确认第三方上游许可证后，全量安装推荐清单：
+
+```bash
+python3 scripts/install_skills.py --full --accept-restricted-licenses
+```
+
+只安装第三方默认推荐项：
 
 ```bash
 python3 scripts/install_third_party_skills.py
@@ -39,7 +51,7 @@ python3 scripts/install_third_party_skills.py --skills-dir ~/.workbuddy/skills
 ## 给 AI 的一句话 / One-Prompt Install
 
 ```text
-请打开 https://github.com/NEU-ZHA/legal-ai-skills，阅读 THIRD_PARTY_RECOMMENDED_SKILLS.md 和 third_party_skills.json，然后运行 scripts/install_third_party_skills.py 帮我安装第三方法律 skills。默认先安装 Apache-2.0 项；CC BY-NC-ND 或带附加条款的项目，先解释许可证限制并等我确认后再从原作者仓库克隆，不要改写、不要合并进我的仓库、不要用于训练或向量知识库。
+请克隆并安装 https://github.com/NEU-ZHA/legal-ai-skills。进入仓库后运行 python3 scripts/install_skills.py，直接安装本仓库 skills 和默认第三方推荐项。如果我确认要安装全量第三方推荐清单，请解释 CC BY-NC-ND 或带附加条款项目的限制，确认后运行 python3 scripts/install_skills.py --full --accept-restricted-licenses；第三方项目只从原作者仓库克隆，不要改写、不要合并进我的仓库、不要用于训练或向量知识库。
 ```
 
 ## 推荐项目 / Recommended Projects

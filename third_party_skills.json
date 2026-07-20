@@ -2,6 +2,13 @@
   "schema_version": 1,
   "updated_on": "2026-07-20",
   "purpose": "Machine-readable index for recommended third-party legal AI skills. This repository does not redistribute third-party source code; installers should clone from the upstream repository.",
+  "direct_install_commands": {
+    "clone_then_default": "git clone https://github.com/NEU-ZHA/legal-ai-skills.git && cd legal-ai-skills && python3 scripts/install_skills.py",
+    "default": "python3 scripts/install_skills.py",
+    "full_after_license_confirmation": "python3 scripts/install_skills.py --full --accept-restricted-licenses",
+    "first_party_only": "python3 scripts/install_skills.py --skip-third-party",
+    "list_third_party": "python3 scripts/install_third_party_skills.py --list"
+  },
   "default_skills_dir": "~/.codex/skills",
   "default_repo_cache_dir": "~/.codex/third_party_skill_repos",
   "policies": {
