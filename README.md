@@ -91,6 +91,20 @@ AI 通常会自己判断该用哪个 skill。上面这些“请使用 xxx”的�
 
 PKULaw/北大法宝相关 skills 适合已经有学校或机构访问权限、并愿意自行开通/购买对应 MCP 服务的同学。配置时先把已购买服务名称、页面文字或截图给 AI，让它按实际订阅安装；刚开始不知道买什么时，可以先从法规关键词检索、精准法条查找、案例关键词检索三项开始。MCP 检索通常比浏览器兜底快很多。没有 token 或登录权限也可以先不用，优先用上面几个写作、引注和 Word 处理 skill。
 
+如果你还想安装其他作者的优秀法律 skill，本仓库提供一个第三方推荐索引和安装脚本。它只从原作者仓库克隆，不把第三方源码合并进本仓库：
+
+```text
+THIRD_PARTY_RECOMMENDED_SKILLS.md
+third_party_skills.json
+scripts/install_third_party_skills.py
+```
+
+最省事的问法：
+
+```text
+请打开这个仓库的 THIRD_PARTY_RECOMMENDED_SKILLS.md 和 third_party_skills.json，按许可证要求帮我安装推荐的第三方法律 skills。
+```
+
 ## 还需要准备什么 / What Else You Need
 
 不要把下面这张表理解成“用之前必须额外找齐一堆文件”。大多数写作、事实核查、引注和 Word 排版 skill，真正的用法就是：你把正在处理的草稿、自己已经检索到的法规/案例/PDF/网页截图、课程模板或 Word 文件放在同一个任务文件夹里，再让 AI 按 skill 工作。比如 `legal-fact-checker` 不是要求你重新上网检索，而是帮你检查草稿里的法律依据有没有被你给出的来源支持，缺来源就标出来。
@@ -282,6 +296,38 @@ cp -R skills/legal-citation-automator ~/.codex/skills/
 如果你的运行时不是 Codex，请把目标路径替换成对应的 skills 目录。
 
 If your runtime is not Codex, replace `~/.codex/skills/` with the relevant skills directory.
+
+## 第三方优秀法律 Skills / Recommended Third-Party Skills
+
+本仓库也维护一个第三方法律 skill 推荐索引，方便用户让 AI 一次性理解“有哪些好东西、分别适合干什么、能不能自动安装”。
+
+This repository also includes a third-party legal-skill recommendation index so an AI agent can understand what is recommended, what each project is for, and whether it can be installed automatically.
+
+```bash
+python3 scripts/install_third_party_skills.py --list
+python3 scripts/install_third_party_skills.py
+```
+
+默认只安装 Apache-2.0 项；受限许可项目需要用户明确确认：
+
+By default, only Apache-2.0 entries are installed. Restricted-license projects require explicit user confirmation:
+
+```bash
+python3 scripts/install_third_party_skills.py --all --accept-restricted-licenses
+```
+
+详细说明见：
+
+See:
+
+```text
+THIRD_PARTY_RECOMMENDED_SKILLS.md
+third_party_skills.json
+```
+
+注意：第三方项目始终从原作者 GitHub 仓库克隆。本仓库不是第三方源码镜像，也不公开分发受限许可项目的改写版。
+
+Note: third-party projects are always cloned from the original author's GitHub repositories. This repository is not a source mirror and does not distribute modified versions of restricted-license projects.
 
 ## 配置北大法宝 MCP / PKULaw MCP Setup
 

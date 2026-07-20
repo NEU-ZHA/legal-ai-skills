@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "updated_on": "2026-07-20",
+  "purpose": "Machine-readable index for recommended third-party legal AI skills. This repository does not redistribute third-party source code; installers should clone from the upstream repository.",
+  "default_skills_dir": "~/.codex/skills",
+  "default_repo_cache_dir": "~/.codex/third_party_skill_repos",
+  "policies": {
+    "auto_install_allowed": "May be installed by default from upstream. Keep upstream LICENSE and attribution.",
+    "explicit_user_confirmation_required": "Only install after the user confirms they have read and accept the upstream license limits. Do not modify, repackage, or merge into this repository."
+  },
+  "skills": [
+    {
+      "id": "gutachten-civil-case",
+      "display_name": "鉴定式民法案例研习 / Civil Gutachten Case Analysis",
+      "author": "游初 / Youchu-lawhub",
+      "repo_url": "https://github.com/Youchu-lawhub/gutachten-civil-case.git",
+      "homepage": "https://github.com/Youchu-lawhub/gutachten-civil-case",
+      "license": "Apache-2.0",
+      "license_url": "https://github.com/Youchu-lawhub/gutachten-civil-case/blob/main/LICENSE",
+      "license_verified_on": "2026-07-20",
+      "install_policy": "auto_install_allowed",
+      "default_install": true,
+      "install_mode": "clone_upstream",
+      "skill_roots": [
+        {
+          "path": ".",
+          "install_as": "gutachten-civil-case"
+        }
+      ],
+      "use_cases_zh": [
+        "中国民法请求权基础分析",
+        "德国鉴定式案例研习",
+        "法学生民法案例作业与方法训练"
+      ],
+      "notes_zh": "可从上游自动安装。安装后保留原仓库 LICENSE 和 NOTICE/声明。"
+    },
+    {
+      "id": "gutachten-criminal-case",
+      "display_name": "鉴定式刑法案例研习 / Criminal Gutachten Case Analysis",
+      "author": "游初 / Youchu-lawhub",
+      "repo_url": "https://github.com/Youchu-lawhub/gutachten-criminal-case.git",
+      "homepage": "https://github.com/Youchu-lawhub/gutachten-criminal-case",
+      "license": "Apache-2.0",
+      "license_url": "https://github.com/Youchu-lawhub/gutachten-criminal-case/blob/main/LICENSE",
+      "license_verified_on": "2026-07-20",
+      "install_policy": "auto_install_allowed",
+      "default_install": true,
+      "install_mode": "clone_upstream",
+      "skill_roots": [
+        {
+          "path": ".",
+          "install_as": "gutachten-criminal-case"
+        }
+      ],
+      "use_cases_zh": [
+        "刑法三阶层案例分析",
+        "罪名发现与罪名检视",
+        "法学生刑法案例研习"
+      ],
+      "notes_zh": "可从上游自动安装。安装后保留原仓库 LICENSE 和 NOTICE/声明。"
+    },
+    {
+      "id": "gutachten-admin-case",
+      "display_name": "鉴定式行政法案例研习 / Administrative Gutachten Case Analysis",
+      "author": "游初 / Youchu-lawhub",
+      "repo_url": "https://github.com/Youchu-lawhub/gutachten-admin-case.git",
+      "homepage": "https://github.com/Youchu-lawhub/gutachten-admin-case",
+      "license": "CC BY-NC-ND 4.0 + additional terms",
+      "license_url": "https://github.com/Youchu-lawhub/gutachten-admin-case/blob/main/LICENSE",
+      "license_verified_on": "2026-07-20",
+      "install_policy": "explicit_user_confirmation_required",
+      "default_install": false,
+      "install_mode": "clone_upstream",
+      "skill_roots": [
+        {
+          "path": ".",
+          "install_as": "gutachten-admin-case"
+        }
+      ],
+      "use_cases_zh": [
+        "行政法鉴定式案例研习",
+        "行政行为合法性审查",
+        "比例原则、裁量审查、规范抵触风险识别"
+      ],
+      "notes_zh": "受限许可。只在用户确认阅读上游 LICENSE 后从原仓库安装；不要改写后公开分发。"
+    },
+    {
+      "id": "cn-litigation-toolkit",
+      "display_name": "中国民商事诉讼工具箱 / Chinese Civil Litigation Toolkit",
+      "author": "游初 / Youchu-lawhub",
+      "repo_url": "https://github.com/Youchu-lawhub/cn-litigation-toolkit.git",
+      "homepage": "https://github.com/Youchu-lawhub/cn-litigation-toolkit",
+      "license": "CC BY-NC-ND 4.0",
+      "license_url": "https://github.com/Youchu-lawhub/cn-litigation-toolkit/blob/main/LICENSE",
+      "license_verified_on": "2026-07-20",
+      "install_policy": "explicit_user_confirmation_required",
+      "default_install": false,
+      "install_mode": "clone_upstream",
+      "skill_root_globs": [
+        "skills/*"
+      ],
+      "install_as_prefix": "cn-litigation-toolkit-",
+      "use_cases_zh": [
+        "民商事诉讼全流程",
+        "起诉状、答辩状、质证、庭审提纲、代理意见",
+        "案件管理、证据整理、诉讼知识库"
+      ],
+      "notes_zh": "受限许可且是多 skill 套件。脚本会从原仓库克隆，并把 skills/* 下带 SKILL.md 的目录按前缀安装。"
+    },
+    {
+      "id": "app-compliance-review",
+      "display_name": "APP 个人信息保护合规检查 / APP Privacy Compliance Review",
+      "author": "游初 / Youchu-lawhub",
+      "repo_url": "https://github.com/Youchu-lawhub/app-compliance-review.git",
+      "homepage": "https://github.com/Youchu-lawhub/app-compliance-review",
+      "license": "CC BY-NC-ND 4.0 + additional terms",
+      "license_url": "https://github.com/Youchu-lawhub/app-compliance-review/blob/main/LICENSE",
+      "license_verified_on": "2026-07-20",
+      "install_policy": "explicit_user_confirmation_required",
+      "default_install": false,
+      "install_mode": "clone_upstream",
+      "skill_roots": [
+        {
+          "path": ".",
+          "install_as": "app-compliance-review"
+        }
+      ],
+      "use_cases_zh": [
+        "APP 个人信息保护合规检查",
+        "隐私政策、权限、SDK、敏感个人信息检查",
+        "合规审查报告与整改清单"
+      ],
+      "notes_zh": "受限许可。只在用户确认阅读上游 LICENSE 后从原仓库安装；不要改写后公开分发。"
+    },
+    {
+      "id": "legal-kb-builder",
+      "display_name": "本地法律知识库建设工厂 / Legal Knowledge Base Builder",
+      "author": "游初 / Youchu-lawhub",
+      "repo_url": "https://github.com/Youchu-lawhub/legal-kb-builder.git",
+      "homepage": "https://github.com/Youchu-lawhub/legal-kb-builder",
+      "license": "CC BY-NC-ND 4.0 + additional terms",
+      "license_url": "https://github.com/Youchu-lawhub/legal-kb-builder/blob/main/LICENSE",
+      "license_verified_on": "2026-07-20",
+      "install_policy": "explicit_user_confirmation_required",
+      "default_install": false,
+      "install_mode": "clone_upstream",
+      "skill_roots": [
+        {
+          "path": ".",
+          "install_as": "legal-kb-builder"
+        }
+      ],
+      "use_cases_zh": [
+        "本地法律知识库建设",
+        "PDF/DOCX/图片材料整理",
+        "业务咨询智能体前置材料处理"
+      ],
+      "notes_zh": "受限许可。只在用户确认阅读上游 LICENSE 后从原仓库安装；不要用于训练、微调或未经许可的向量知识库。"
+    }
+  ]
+}
