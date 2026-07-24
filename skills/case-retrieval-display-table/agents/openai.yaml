@@ -1,0 +1,4 @@
+interface:
+  display_name: "类案检索展示表"
+  short_description: "将检索案例整理为横向法律团队阅览明细表模板"
+  default_prompt: "Use $case-retrieval-display-table to create a legal-team-facing horizontal case retrieval table from these case materials. Use [律所名称] or user-provided organization names instead of hard-coded private names."

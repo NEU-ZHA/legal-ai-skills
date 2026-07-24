@@ -280,6 +280,7 @@ Before configuration, ask which MCP services the user has purchased or enabled. 
 | `legal-homework-formatter` | 法学作业 Word 格式处理，支持目录生成/修复；公开版会询问姓名/学号 | Format legal homework DOCX files, including TOC generation/repair; public version asks for user identity fields |
 | `legal-toa-formatter` | Table of Authorities 点号填充与对齐 | Format Table of Authorities dot leaders |
 | `evidence-catalog-generator` | 整理用户提供的证据材料，并填入证据目录模板 | Organize user-provided evidence materials into an evidence catalog template |
+| `case-retrieval-display-table` | 将检索到的案例整理为横向案例卡片展示表；公开版使用 `[律所名称]` 占位符 | Organize retrieved cases into a horizontal case-card display table with law-firm placeholders |
 
 `legal-homework-formatter` 现在包含一份匿名化 Word 模板：
 
@@ -306,6 +307,10 @@ skills/legal-homework-formatter/references/user_materials_guide.md
 - `docx-editing`: preservation-sensitive editing for existing `.docx` files.
 - `docx-cn`: Chinese Word document helpers.
 - `docx-toolkit`: extract text, tables, and images from DOCX files.
+
+`case-retrieval-display-table` 需要 Node.js 和 `docx` 包来生成横向 Word 表格；如果当前运行时没有该依赖，请在仓库根目录或该 skill 目录运行 `npm install docx`。
+
+`case-retrieval-display-table` needs Node.js and the `docx` package to generate landscape Word tables. If the dependency is missing, run `npm install docx` at the repository root or inside that skill directory.
 
 ## 安装方式 / Installation
 
