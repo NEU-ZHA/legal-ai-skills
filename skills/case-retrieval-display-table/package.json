@@ -1,0 +1,13 @@
+{
+  "name": "case-retrieval-display-table",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Generate anonymized horizontal Word case retrieval display tables.",
+  "scripts": {
+    "build": "node scripts/build_case_display_table.js"
+  },
+  "dependencies": {
+    "docx": "^9.7.1"
+  }
+}

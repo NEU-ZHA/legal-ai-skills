@@ -22,6 +22,8 @@ IGNORE_PATTERNS = {
     "*.pyc",
     "*.pyo",
     "*.pyd",
+    "node_modules",
+    "package-lock.json",
     ".env",
     ".env.*",
     "*.token",

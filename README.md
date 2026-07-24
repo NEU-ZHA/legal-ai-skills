@@ -308,9 +308,9 @@ skills/legal-homework-formatter/references/user_materials_guide.md
 - `docx-cn`: Chinese Word document helpers.
 - `docx-toolkit`: extract text, tables, and images from DOCX files.
 
-`case-retrieval-display-table` 需要 Node.js 和 `docx` 包来生成横向 Word 表格；如果当前运行时没有该依赖，请在仓库根目录或该 skill 目录运行 `npm install docx`。
+`case-retrieval-display-table` 需要 Node.js 和 `docx` 包来生成横向 Word 表格；如果当前运行时没有该依赖，请进入该 skill 目录运行 `npm install`。
 
-`case-retrieval-display-table` needs Node.js and the `docx` package to generate landscape Word tables. If the dependency is missing, run `npm install docx` at the repository root or inside that skill directory.
+`case-retrieval-display-table` needs Node.js and the `docx` package to generate landscape Word tables. If the dependency is missing, run `npm install` inside that skill directory.
 
 ## 安装方式 / Installation
 

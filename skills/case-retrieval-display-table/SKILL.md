@@ -32,10 +32,10 @@ node scripts/build_case_display_table.js \
   --title "[律所名称]｜类案检索案例展示模板"
 ```
 
-如果当前运行时没有 `docx` 依赖，请先在仓库根目录或本 skill 目录安装：
+如果当前运行时没有 `docx` 依赖，请先在本 skill 目录安装：
 
 ```bash
-npm install docx
+npm install
 ```
 
 ## 输出规则
