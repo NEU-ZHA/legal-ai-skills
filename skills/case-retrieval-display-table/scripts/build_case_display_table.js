@@ -15,6 +15,7 @@ const {
   ShadingType,
   Table,
   TableCell,
+  TableLayoutType,
   TableRow,
   TextRun,
   UnderlineType,
@@ -143,8 +144,9 @@ function caseTable(item, index) {
   ].join("；");
   const keyExpressions = firstClean([item.keyExpressions, item.derogatoryTerms], "〔关键表述／关键词〕");
   return new Table({
-    width: { size: TABLE_WIDTH, type: WidthType.DXA },
+    width: { size: 100, type: WidthType.PERCENTAGE },
     columnWidths: [LABEL_WIDTH, CONTENT_WIDTH],
+    layout: TableLayoutType.FIXED,
     borders,
     rows: [
       new TableRow({
