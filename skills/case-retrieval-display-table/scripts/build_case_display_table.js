@@ -9,7 +9,6 @@ const {
   ExternalHyperlink,
   Footer,
   Packer,
-  PageBreak,
   PageOrientation,
   Paragraph,
   ShadingType,
@@ -85,8 +84,18 @@ const MARGIN = 780;
 const TABLE_WIDTH = PAGE_LONG - MARGIN * 2;
 const LABEL_WIDTH = 1650;
 const CONTENT_WIDTH = TABLE_WIDTH - LABEL_WIDTH;
+const PCT_TABLE_WIDTH = "5000";
+const PCT_LABEL_WIDTH = "540";
+const PCT_CONTENT_WIDTH = "4460";
 const border = { style: BorderStyle.SINGLE, size: 5, color: BLACK };
 const borders = { top: border, bottom: border, left: border, right: border, insideHorizontal: border, insideVertical: border };
+
+function cellWidth(width) {
+  if (width === TABLE_WIDTH) return { size: PCT_TABLE_WIDTH, type: WidthType.PERCENTAGE };
+  if (width === LABEL_WIDTH) return { size: PCT_LABEL_WIDTH, type: WidthType.PERCENTAGE };
+  if (width === CONTENT_WIDTH) return { size: PCT_CONTENT_WIDTH, type: WidthType.PERCENTAGE };
+  return { size: width, type: WidthType.DXA };
+}
 
 function run(text, options = {}) {
   return new TextRun({ text: clean(text, ""), font: FONT, size: options.size || 20, bold: options.bold || false, color: options.color, underline: options.underline });
@@ -104,7 +113,7 @@ function paragraph(content, options = {}) {
 function ordinaryCell(content, width, options = {}) {
   const body = Array.isArray(content) ? content : [paragraph(content, options)];
   return new TableCell({
-    width: { size: width, type: WidthType.DXA },
+    width: cellWidth(width),
     borders,
     shading: options.shading ? { fill: options.shading, type: ShadingType.CLEAR } : undefined,
     margins: { top: options.top ?? 80, bottom: options.bottom ?? 80, left: 120, right: 120 },
@@ -135,7 +144,7 @@ function textValue(item, key, placeholder) {
   return clean(item[key], placeholder);
 }
 
-function caseTable(item, index) {
+function caseRows(item, index) {
   const category = clean(item.classification, "〔检索分类〕");
   const metadata = [
     textValue(item, "caseNumber", "〔案号〕"),
@@ -143,34 +152,38 @@ function caseTable(item, index) {
     textValue(item, "procedure", "〔一审／二审；判决书／裁定书〕"),
   ].join("；");
   const keyExpressions = firstClean([item.keyExpressions, item.derogatoryTerms], "〔关键表述／关键词〕");
+  return [
+    new TableRow({
+      cantSplit: true,
+      children: [
+        new TableCell({
+          columnSpan: 2,
+          width: cellWidth(TABLE_WIDTH),
+          borders,
+          shading: { fill: HEADER_BLUE, type: ShadingType.CLEAR },
+          margins: { top: 95, bottom: 95, left: 120, right: 120 },
+          children: [paragraph(`案例 ${index}｜${category}`, { bold: true, size: 22, alignment: AlignmentType.CENTER })],
+        }),
+      ],
+    }),
+    new TableRow({ cantSplit: true, children: [ordinaryCell([paragraph("案件名称", { bold: true, alignment: AlignmentType.CENTER })], LABEL_WIDTH, { shading: LABEL_BLUE }), titleCell(item)] }),
+    row("审理法院", textValue(item, "court", "〔法院名称〕")),
+    row("案号／日期／程序", metadata),
+    row("案件性质", textValue(item, "caseNature", "〔案件性质〕")),
+    row("关键表述／关键词", keyExpressions),
+    row("核心事实／争点", textValue(item, "issues", "〔核心事实／争点〕"), { top: 105, bottom: 105 }),
+    row("法院认定", textValue(item, "findings", "〔法院认定〕"), { top: 105, bottom: 105 }),
+    row("裁判结果", textValue(item, "disposition", "〔裁判结果〕")),
+  ];
+}
+
+function caseDisplayTable(cases) {
   return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
+    width: { size: PCT_TABLE_WIDTH, type: WidthType.PERCENTAGE },
     columnWidths: [LABEL_WIDTH, CONTENT_WIDTH],
     layout: TableLayoutType.FIXED,
     borders,
-    rows: [
-      new TableRow({
-        cantSplit: true,
-        children: [
-          new TableCell({
-            columnSpan: 2,
-            width: { size: TABLE_WIDTH, type: WidthType.DXA },
-            borders,
-            shading: { fill: HEADER_BLUE, type: ShadingType.CLEAR },
-            margins: { top: 95, bottom: 95, left: 120, right: 120 },
-            children: [paragraph(`案例 ${index}｜${category}`, { bold: true, size: 22, alignment: AlignmentType.CENTER })],
-          }),
-        ],
-      }),
-      new TableRow({ cantSplit: true, children: [ordinaryCell([paragraph("案件名称", { bold: true, alignment: AlignmentType.CENTER })], LABEL_WIDTH, { shading: LABEL_BLUE }), titleCell(item)] }),
-      row("审理法院", textValue(item, "court", "〔法院名称〕")),
-      row("案号／日期／程序", metadata),
-      row("案件性质", textValue(item, "caseNature", "〔案件性质〕")),
-      row("关键表述／关键词", keyExpressions),
-      row("核心事实／争点", textValue(item, "issues", "〔核心事实／争点〕"), { top: 105, bottom: 105 }),
-      row("法院认定", textValue(item, "findings", "〔法院认定〕"), { top: 105, bottom: 105 }),
-      row("裁判结果", textValue(item, "disposition", "〔裁判结果〕")),
-    ],
+    rows: cases.flatMap((item, index) => caseRows(item, index + 1)),
   });
 }
 
@@ -188,10 +201,7 @@ const body = [
   }),
 ];
 
-payload.cases.forEach((item, index) => {
-  if (index > 0) body.push(new Paragraph({ children: [new PageBreak()] }));
-  body.push(caseTable(item, index + 1));
-});
+body.push(caseDisplayTable(payload.cases));
 
 const document = new Document({
   creator: creatorName,
