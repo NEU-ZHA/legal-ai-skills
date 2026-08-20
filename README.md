@@ -115,7 +115,7 @@ AI 通常会自己判断该用哪个 skill。上面这些“请使用 xxx”的�
 - 学校账号、数据库 token、cookie、身份证号、手机号等只放在本机配置、环境变量或私有文件里，不要写进 skill、README、示例、模板，也不要提交到 GitHub。
 - 交作业前自己再核对一遍法规名称、条号、案例名称、案号、页码和脚注。
 
-PKULaw/北大法宝相关 skills 适合已经有学校或机构访问权限、并愿意自行开通/购买对应 MCP 服务的同学。配置时先把已购买服务名称、页面文字或截图给 AI，让它按实际订阅安装；刚开始不知道买什么时，可以先从法规关键词检索、精准法条查找、案例关键词检索三项开始。MCP 检索通常比浏览器兜底快很多。没有 token 或登录权限也可以先不用，优先用上面几个写作、引注和 Word 处理 skill。
+PKULaw/北大法宝 MCP 现在采用统一积分：控制台可以开启多项服务，真正调用时按服务扣积分。建议配置控制台已开启的全部服务，但让 AI 日常先用法规关键词、精准法条、案例关键词这三个约 25 积分能力；法规语义、案例语义、引用溯源和综合检索等约 125 积分能力只在确有必要时调用。MCP 检索通常比浏览器兜底快很多。没有 token 也可以先不用，优先使用写作、引注和 Word 处理 skill。
 
 如果你还想安装其他作者的优秀法律 skill，本仓库提供一个第三方推荐索引和安装脚本。`scripts/install_skills.py` 已经默认安装 Apache-2.0 的推荐项；如果确认许可证后使用 `--full --accept-restricted-licenses`，会从原作者仓库克隆并安装推荐清单里的其他项目，但仍不把第三方源码合并进本仓库：
 
@@ -137,7 +137,7 @@ scripts/install_third_party_skills.py
 
 真正比较像“提前配置”的，主要是两类：
 
-- 北大法宝 MCP：如果你想让 AI 自动查法规、法条、案例，需要自行开通/购买对应 MCP 服务。配置时先告诉 AI 你买了哪些服务；可以发服务名称、订单页文字、服务页截图或 token 页面截图，让 AI 帮你判断应安装哪些 MCP。完全没头绪时，再从法规关键词检索、精准法条查找、案例关键词检索这三项开始。
+- 北大法宝 MCP：如果你想让 AI 自动查法规、法条、案例，需要在法宝 MCP 控制台获取 Token 并开启服务。统一积分模式下可以配置全部 10 项；节省积分靠智能路由，而不是少安装能力。页面截图只需显示服务开关，不要显示 Token 明文。
 - 《法学引注手册》同版资料：只有当你想让 `legal-citation-comprehensive` 严格按手册全量核验时，才需要准备同版 PDF，并按下面说明生成本地规则索引。普通脚注缺项检查可以先直接用。
 
 下面这张表说的是“每次做任务时最好给 AI 什么材料”，不是让你在安装前全部准备好：
@@ -149,7 +149,7 @@ scripts/install_third_party_skills.py
 | 把核验后的引注写进 Word 脚注 | `legal-citation-automator` | `.docx` 草稿；已经核验过的引注清单或 JSON；最好先跑 `legal-citation-comprehensive` | 还有 `[待补: ...]` 时先不要自动写入正式脚注 |
 | 排版法学作业、legal writing 或其他课程文书，生成/修复目录 | `legal-homework-formatter` | 作业说明；草稿；课程/机构模板；姓名、学号、课程名、日期等身份字段；需要目录时说明标题层级 | 没有课程模板时可用内置匿名模板；缺身份字段时让 AI 先问你；目录真实页码以 Word 更新域为准 |
 | 生成证据目录 | `evidence-catalog-generator` | 证据材料、文件名、材料说明或条目表；最好提供自己的证据目录 `.docx` 模板 | 没模板时生成通用证据目录；缺证明事项/页码时标 `[待补: ...]` |
-| 查法规、法条、案例并回源 | `pkulaw-*` | 北大法宝账号/学校或机构权限；有效 token；你已开通/购买的 MCP 服务名称或截图 | 让 AI 先根据购买信息选择要安装的 MCP；高级 MCP 没订阅时不要硬用，转已开通的 MCP 或 `pkulaw-legal-search` 浏览器兜底 |
+| 查法规、法条、案例并回源 | `pkulaw-*` | 有效 token；控制台已开启服务；当前任务问题 | 默认先用约 25 积分的关键词/精准检索；两轮合理关键词仍不足或任务明确需要专门能力时，才调用约 125 积分服务；不要一次跑完 10 项 |
 | 编辑、抽取、检查 Word/DOCX | `docx-editing`、`docx-cn`、`docx-toolkit`、`legal-toa-formatter` | 待处理 `.docx`；必要时提供原始模板或修改前版本 | 复杂修订/红线优先保留备份；格式异常时先让 AI 做兼容性检查 |
 
 简单说：`legal-citation-comprehensive` 可以先用起来；你把脚注和来源材料给它，它就能帮你找缺项、标占位符。只有你希望它严格按《法学引注手册（第二版）》逐条核验时，才需要另外准备同版 PDF 并生成下面说的规则索引文件。
@@ -243,17 +243,17 @@ docs/法学引注手册本地配置说明.md
 
 ### 北大法宝与法律检索 / PKULaw MCP and Legal Research
 
-说明：这里的部分 PKULaw workflow skill 是根据公开可见资料、公开接口说明和个人使用经验整理的社区/个人工作流，不是北大法宝官方发布的产品说明，也不包含任何真实 token、账号、cookie 或私有数据库内容。实际使用时，用户仍需自行确认已经合法取得北大法宝访问权限，并开通/购买对应 MCP 服务。
+说明：这里的部分 PKULaw workflow skill 是根据公开可见资料、公开接口说明和个人使用经验整理的社区/个人工作流，不是北大法宝官方发布的产品说明，也不包含任何真实 token、账号、cookie 或私有数据库内容。实际服务名称、开关状态和积分价格请以用户当时的北大法宝 MCP 控制台为准。
 
-Note: Some PKULaw workflow skills here are community/personal workflows organized from publicly visible materials, public interface descriptions, and practical usage notes. They are not official PKULaw product documentation and do not include real tokens, accounts, cookies, or private database content. Users must have lawful PKULaw access and the relevant MCP subscriptions before using them.
+Note: Some PKULaw workflow skills here are community/personal workflows organized from publicly visible materials, public interface descriptions, and practical usage notes. They are not official PKULaw product documentation and do not include real tokens, accounts, cookies, or private database content. Current service availability and point costs should be checked in the user's PKULaw MCP console.
 
 | Skill | 中文说明 | English |
 | --- | --- | --- |
 | `pkulaw-mcp-installer` | 安装/配置北大法宝 MCP，要求用户本地提供 token | Install and configure PKULaw MCP with a user-provided local token |
-| `pkulaw-mcp-legal-research` | 北大法宝法律研究总路由 | General PKULaw legal research router |
-| `pkulaw-mcp-law-retrieval` | 法律法规关键词检索 | Statute and regulation keyword retrieval |
+| `pkulaw-mcp-legal-research` | 10 项 MCP 成本感知总路由 | Cost-aware router for all 10 PKULaw MCP services |
+| `pkulaw-mcp-law-retrieval` | 法规关键词优先、必要时升级语义检索 | Keyword-first statute retrieval with semantic escalation |
 | `pkulaw-mcp-fatiao-precise` | 已知法规名和条号时精准取回法条 | Precise article lookup by law name and article number |
-| `pkulaw-mcp-case-retrieval` | 司法案例关键词检索 | Judicial case keyword retrieval |
+| `pkulaw-mcp-case-retrieval` | 案例关键词优先、必要时升级语义检索 | Keyword-first case retrieval with semantic escalation |
 | `pkulaw-legal-search` | 北大法宝网页/浏览器兜底检索流程 | Browser fallback workflow for PKULaw web research |
 | `pkulaw-mcp-citation-validator` | 法条引用核验与纠偏 | Citation validation and correction |
 | `pkulaw-mcp-doc-link` | 给法规/案例引用补可追溯链接 | Add traceable source links to legal references |
@@ -266,9 +266,9 @@ Note: Some PKULaw workflow skills here are community/personal workflows organize
 
 Additional PKULaw workflows include case-number extraction, law-recognition, opinion citation checks, regulatory reply checks, governance memos, labor/employment answers, and semantic search routing.
 
-配置时先确认用户已经购买/开通了哪些 MCP；用户可以提供服务名称、购买页面文字、服务页截图或 token 页面截图。`law-keyword`、`fatiao`、`case-keyword` 是最常见的基础组合；`citation-validator`、`doc-link`、`case-number`、`semantic-nlsql`、`law-recognition` 等属于高级可选能力。只有确认已经购买/开通对应订阅时，才让 AI 调用这些 workflow。没有高级订阅时，应改用已开通的 MCP + 浏览器兜底，不要让 AI 声称已经完成高级 MCP 核验。
+统一积分模式下，可以安装控制台已开启的全部 10 项服务。调用时执行成本感知路由：`law-keyword`、`fatiao`、`case-keyword` 约 25 积分，作为普通研究入口；语义检索、引用溯源、案号识别、超链和综合检索约 125 积分，只在关键词路径不足或任务明确需要时调用。安装全部服务不等于每次全部调用。
 
-Before configuration, ask which MCP services the user has purchased or enabled. The user can provide service names, text from the purchase page, screenshots, or the token page. `law-keyword`, `fatiao`, and `case-keyword` are the common starter set. Advanced capabilities such as `citation-validator`, `doc-link`, `case-number`, `semantic-nlsql`, and `law-recognition` should be used only when the user has confirmed the relevant subscription. Without those subscriptions, use the enabled MCP services plus browser fallback instead of claiming advanced MCP verification.
+Under the unified-points model, configure the services enabled in the console, including all 10 when available. Route ordinary work through the roughly 25-point `law-keyword`, `fatiao`, and `case-keyword` services first. Use the roughly 125-point semantic, validation, recognition, linking, and cross-database services only when targeted retrieval is insufficient or the task directly requires that specialist capability.
 
 ### 法律写作与引注 / Citation and Legal Writing
 
@@ -401,31 +401,31 @@ The public version does not include any real token. Provide your own PKULaw toke
 最简单的流程：
 
 1. 在浏览器搜索“北大法宝 MCP”，进入北大法宝 MCP 服务页面。
-2. 按需购买/开通服务。不会选时，可以先从法规关键词检索、精准法条查找、案例关键词检索这三项开始。
+2. 在控制台开启需要的服务；统一积分模式下可以开启全部 10 项，调用时才扣积分。
 3. 页面生成 token 后，在本机通过环境变量、终端交互或 AI 客户端的本地配置提供给 AI。
-4. 把你购买的服务名称、服务页面文字或截图给 AI，让它判断应安装哪些 MCP。
-5. 对 AI 说：请使用 `pkulaw-mcp-installer`，把我的北大法宝 token 和已购买服务配置到当前运行时的 MCP 配置文件里。
+4. 把服务开关页面文字或截图给 AI，让它确认开启项；截图不要展示 Token 明文。
+5. 对 AI 说：请使用 `pkulaw-mcp-installer` 配置我已开启的北大法宝 MCP，并启用成本感知路由，普通检索先走 25 积分服务。
 
 Simplest setup:
 
 1. Search the web for "北大法宝 MCP" and open the PKULaw MCP service page.
-2. Purchase or enable the services you need. If you are unsure, start with statute keyword search, precise article lookup, and case keyword search.
+2. Enable the services you need in the console. Under unified points, all 10 can be enabled; points are charged when a service is called.
 3. After the page generates a token, provide it locally through an environment variable, terminal prompt, or your AI client's local config.
-4. Give your AI the purchased service names, page text, or screenshots so it can choose which MCP services to install.
-5. Ask your AI to use `pkulaw-mcp-installer` to configure the token and purchased services in the current runtime's MCP config file.
+4. Give your AI the enabled-service list or a screenshot with the token hidden.
+5. Ask your AI to use `pkulaw-mcp-installer` and cost-aware routing, with 25-point retrieval services first.
 
 ```bash
 cd skills/pkulaw-mcp-installer
 PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --mcp-path ~/.workbuddy/mcp.json
 ```
 
-安装前最好先让 AI 根据你购买的服务名称或截图选择 `--services`。如果没有提供 `--services`，脚本会按基础三项安装；已经购买高级 MCP 时，可以显式启用：
+脚本默认安装全部 10 项。控制台只开启部分服务时，再通过 `--services` 精确选择；只想保留三个经济型检索服务可用 `economy`：
 
-Before installing, ask your AI to choose `--services` from the service names or screenshots you provide. If `--services` is omitted, the script installs the basic three services. If you have purchased advanced MCP services, enable them explicitly:
+The script installs all 10 services by default. If the console enables only some services, select them explicitly with `--services`. Use `economy` to configure only the three lower-cost retrieval services:
 
 ```bash
-PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --services all --mcp-path ~/.workbuddy/mcp.json
-PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --services pkulaw-citation,pkulaw-hyperlink --mcp-path ~/.workbuddy/mcp.json
+PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --services economy --mcp-path ~/.workbuddy/mcp.json
+python3 ../pkulaw-mcp-legal-research/scripts/recommend_route.py --intent cross-domain
 ```
 
 注意：

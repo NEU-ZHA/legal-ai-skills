@@ -8,14 +8,14 @@
 用法:
   PKULAW_AUTH_TOKEN="..." python3 install_pkulaw_mcp.py [--mcp-path <path>]
   python3 install_pkulaw_mcp.py --token <authorization_token> [--mcp-path <path>]
-  python3 install_pkulaw_mcp.py --services all [--mcp-path <path>]
+  python3 install_pkulaw_mcp.py --services economy [--mcp-path <path>]
   python3 install_pkulaw_mcp.py --services pkulaw-citation,pkulaw-hyperlink
 
 参数:
   --token              北大法宝 API 的 Bearer Token（不推荐写进 shell history）
   --mcp-path           MCP 配置文件路径（默认 ~/.workbuddy/mcp.json）
-  --services           basic（默认）、all，或逗号分隔的服务名
-  --include-advanced   安装全部高级可选服务，等同于 --services all
+  --services           all（默认）、economy/basic，或逗号分隔的服务名
+  --include-advanced   兼容旧参数，等同于 --services all
 """
 
 import argparse
@@ -25,8 +25,8 @@ import os
 import sys
 
 
-# 北大法宝 MCP 服务定义模板。安装前应先确认用户已经购买/开通哪些服务，
-# 再通过 --services 选择。未指定 --services 时用基础三项作为保守默认值。
+# 北大法宝 MCP 已改为统一积分。安装全部服务不会直接消耗积分，实际调用才扣费。
+# 25 积分服务应作为日常检索入口；125 积分服务只在任务确实需要时升级调用。
 BASIC_MCP_SERVERS = {
     "pkulaw-law-keyword": {
         "type": "streamableHttp",
@@ -75,13 +75,26 @@ ADVANCED_MCP_SERVERS = {
 
 PKULAW_MCP_SERVERS = {**BASIC_MCP_SERVERS, **ADVANCED_MCP_SERVERS}
 
+SERVICE_COSTS = {
+    "pkulaw-law-keyword": 25,
+    "pkulaw-fatiao": 25,
+    "pkulaw-case": 25,
+    "pkulaw-law-search": 125,
+    "pkulaw-citation": 125,
+    "pkulaw-hyperlink": 125,
+    "pkulaw-recognition": 125,
+    "pkulaw-nl-sql": 125,
+    "pkulaw-case-search": 125,
+    "pkulaw-case-number": 125,
+}
+
 
 def select_servers(services_arg: str, include_advanced: bool) -> dict:
-    """选择要安装的 MCP 服务。默认 basic；高级服务需显式启用。"""
+    """选择要安装的 MCP 服务。统一积分模式下默认安装全部 10 项。"""
     if include_advanced or services_arg == "all":
         return PKULAW_MCP_SERVERS
 
-    if services_arg == "basic":
+    if services_arg in {"basic", "economy"}:
         return BASIC_MCP_SERVERS
 
     selected_names = [name.strip() for name in services_arg.split(",") if name.strip()]
@@ -106,6 +119,14 @@ def build_server_config(token: str, servers: dict) -> dict:
         name: {**cfg, "headers": headers}
         for name, cfg in servers.items()
     }
+
+
+def normalize_token(token: str) -> str:
+    """兼容控制台复制出的 `Bearer ...` 和仅复制 token 正文两种格式。"""
+    token = token.strip()
+    if token.lower().startswith("bearer "):
+        return token[7:].strip()
+    return token
 
 
 def load_mcp_json(path: str) -> dict:
@@ -151,9 +172,11 @@ def install(token: str, mcp_path: str, servers: dict) -> None:
         print(f"   更新 {len(updated)} 个服务: {', '.join(updated)}")
     print(f"\n📋 本次配置 {len(new_servers)} 个北大法宝 MCP 服务:")
     for name, cfg in new_servers.items():
-        print(f"   • {name} → {cfg['url']}")
+        print(f"   • {name} ({SERVICE_COSTS[name]} 积分/次) → {cfg['url']}")
     if set(new_servers) == set(BASIC_MCP_SERVERS):
-        print("\nℹ️  未指定 --services 时使用基础三项。用户已购买其他 MCP 时，可用 --services 服务名 启用。")
+        print("\nℹ️  当前只配置 3 项经济型服务；如需完整能力，可改用 --services all。")
+    if set(new_servers) == set(PKULAW_MCP_SERVERS):
+        print("\n💡 已配置全部 10 项。日常检索先用 25 积分服务，结果不足或任务明确需要时再调用 125 积分服务。")
     print("\n⚠️  请重启 WorkBuddy 以加载新配置。")
 
 
@@ -164,8 +187,8 @@ def main():
     parser.add_argument("--mcp-path", default="~/.workbuddy/mcp.json", help="MCP 配置文件路径")
     parser.add_argument(
         "--services",
-        default="basic",
-        help="basic（默认）、all，或逗号分隔的服务名",
+        default="all",
+        help="all（默认）、economy/basic，或逗号分隔的服务名",
     )
     parser.add_argument(
         "--include-advanced",
@@ -180,6 +203,8 @@ def main():
 
     if not token:
         token = getpass.getpass("请输入北大法宝 Bearer Token（不会回显）: ").strip()
+
+    token = normalize_token(token)
 
     if not token:
         print("❌ 错误: 未提供 Authorization Token")

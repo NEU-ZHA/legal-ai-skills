@@ -1,9 +1,10 @@
 ---
 name: pkulaw-mcp-law-retrieval
 description: >
-  北大法宝原生 MCP 的法规/精准法条检索 Skill。当前本机已配置 `law-keyword`（检索法律法规-关键词）和 `fatiao`（精准查找法条-关键词），不得假定 `law-semantic`、`law-recognition` 等旧 MCP 可用。Use when：用户明确要找法规、规范性文件、司法解释、配套依据，或希望围绕一个法律问题先找相关法规材料；若已知法规名加条号，需要优先走精准法条。NOT for：案例检索、案号识别、网页端登录、网页详情页点击、复制网页 URL；网页兜底应转用户自建的 `pkulaw-legal-search`。须已配置并订阅法宝 MCP；禁止无检索依据编造法规名称、文号、条号或效力状态。
+  北大法宝原生 MCP 的成本感知法规检索 Skill。Use when：用户要找法规、规范性文件、司法解释或精准法条。默认先用约 25 积分的 `law-keyword`/`fatiao`；只有两轮合理关键词仍不足时才升级约 125 积分的 `law-semantic`。NOT for：案例检索或网页登录操作。禁止无检索依据编造法规名称、文号、条号或效力状态。
 license: MIT
 metadata:
+  version: "1.2.0"
   pkulaw:
     protocol: MCP
     service_source: "北大法宝原生 MCP 服务"
@@ -11,11 +12,12 @@ metadata:
     product_lines:
       - 检索法律法规-关键词
       - 精准查找法条-关键词
+      - 检索法律法规-语义
     server_ids:
       - law-keyword
       - fatiao
+      - law-semantic
     mcp_cli: "@pkulaw/mcp-cli"
-version: "1.1.0"
 ---
 
 # 北大法宝 MCP：法律法规检索
@@ -24,12 +26,13 @@ version: "1.1.0"
 
 它和 `pkulaw-legal-search` 不重复：本 Skill 只走原生 MCP 的法规/法条能力；MCP 不通、当前会话没加载对应工具、返回 401/403/超时/无结果、结果不足、需要网页详情页、登录态或 Computer Use 时，立即转 `pkulaw-legal-search`。
 
-当前覆盖两个已配置的原生 MCP 服务：
+当前覆盖三个原生 MCP 服务：
 
 | 路径 | serverId | 什么时候优先用 |
 |------|----------|----------------|
 | 关键词检索 | `law-keyword` | 用户已给出法规标题词、正文关键词、概念词，希望返回列表 |
 | 精准法条 | `fatiao` | 用户已给出法规名 + 条号，或需要核对条文原文 |
+| 语义检索 | `law-semantic` | 两轮合理关键词仍无法覆盖自然语言问题，作为升级路径 |
 
 如果任务已经明确是“只查案例”，请转到 [pkulaw-mcp-case-retrieval](../pkulaw-mcp-case-retrieval/SKILL.md)。如果任务是“已知法规名 + 条号取全文”，优先走 `fatiao`；如果当前会话尚未暴露该 MCP，再用 `law-keyword` 找法规线索并转网页端详情页核对条号和原文。
 
@@ -45,7 +48,7 @@ version: "1.1.0"
 2. 只允许基于当次返回内容做摘要，不得用模型记忆补齐缺失依据。
 3. 关键词路径下，`title` 与 `fulltext` 至少有一项；具体参数名仍以 `tools` 输出为准。
 4. 出现 `401/403`、无结果、超时或工具不存在时，只能说明失败原因与下一步建议，不能空答。
-5. 不得调用或建议调用未订阅的 `law-semantic`、`law-recognition`、`citation-validator`、`doc-link`、`semantic-nlsql`。
+5. 不得把 `law-semantic` 当默认入口；它约 125 积分，只能在关键词路径不足且能说明缺口时升级一次。
 6. MCP 路由失败或结果不足时，默认转 `pkulaw-legal-search` 的网页/Computer Use 流程继续核查。
 
 ## 默认路由
@@ -60,8 +63,10 @@ version: "1.1.0"
    - 先提炼 1-3 个关键词，再走 `law-keyword`
 4. 关键词结果太少、过窄：
    - 换法律全称/简称、制度名、核心行为、责任类型或相关主体再检索
+5. 两轮有理由的关键词仍缺少相关规范：
+   - 只升级调用一次 `law-semantic`，并记录为什么升级
 
-默认不要假设语义检索可用；本机当前只跑关键词路径。
+不要因用户输入是自然语言就直接走语义检索。AI 本身可以先提炼关键词，通常 25 积分路径已经足够。
 
 ## 推荐工作流
 
@@ -70,7 +75,7 @@ version: "1.1.0"
 3. 用 `tools` 确认真实 `<toolName>` 与参数名。
 4. 完成一次检索。
 5. 只整理当次返回里的标题、摘要、时效、链接等信息。
-6. 若结果不足，再做一次有理由的补检索，而不是盲目多工具并发。
+6. 若结果不足，先做一次有理由的关键词补检索；仍不足才升级语义，不并发调用。
 
 ## 失败与降级
 
@@ -103,6 +108,7 @@ version: "1.1.0"
 ```bash
 pkulaw-mcp tools law-keyword
 pkulaw-mcp law-keyword <toolName> --title "劳动合同"
+pkulaw-mcp tools law-semantic
 ```
 
 说明：

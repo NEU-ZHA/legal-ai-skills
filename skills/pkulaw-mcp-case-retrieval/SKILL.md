@@ -1,32 +1,35 @@
 ---
 name: pkulaw-mcp-case-retrieval
 description: >
-  检索司法案例与裁判文书资料。当前本机只订阅 `case-keyword`（检索司法案例-关键词），不得假定 `case-semantic`、`case-number` 等旧 MCP 可用。Use when：用户明确要找类案、裁判样本、裁判文书线索，或希望围绕一个争议问题先看法院如何处理。NOT for：法规检索、已知法条的精准全文查询、案号识别溯源、以及未经过检索就直接概括“法院通常怎么判”的任务。须已配置并订阅法宝 MCP；禁止无检索依据编造案号、法院名称、裁判日期或裁判要旨。
+  成本感知地检索司法案例与裁判文书资料。Use when：用户要找类案、裁判样本或裁判线索。默认先用约 25 积分的 `case-keyword`；只有两轮合理关键词仍找不到事实相似样本时才升级约 125 积分的 `case-semantic`。NOT for：法规检索或未检索就概括裁判倾向。禁止编造案号、法院、日期或裁判要旨。
 license: MIT
 metadata:
+  version: "1.2.0"
   pkulaw:
     protocol: MCP
     service_source: "北大法宝原生 MCP 服务"
     cli_debug_entry: "@pkulaw/mcp-cli"
     product_lines:
       - 检索司法案例-关键词
+      - 检索司法案例-语义
     server_ids:
       - case-keyword
+      - case-semantic
     mcp_cli: "@pkulaw/mcp-cli"
-version: "1.1.0"
 ---
 
 # 北大法宝 MCP：司法案例检索
 
 这个 Skill 只负责一件事：**把类案样本与裁判线索找出来，并按可复核的方式交给后续分析或备忘环节。**
 
-当前只覆盖一个已订阅并实测可用的原生 MCP 服务：
+当前覆盖两个原生 MCP 服务：
 
 | 路径 | serverId | 什么时候优先用 |
 |------|----------|----------------|
 | 关键词检索 | `case-keyword` | 用户已给出案由词、争点词、标题词，想返回案例列表 |
+| 语义检索 | `case-semantic` | 两轮合理关键词仍找不到事实相似样本，作为升级路径 |
 
-如果任务已经明确是“只查法规”，请转到 [pkulaw-mcp-law-retrieval](../pkulaw-mcp-law-retrieval/SKILL.md)。如果任务是“识别案号并溯源”，本机当前没有案号识别 MCP 订阅；可把案号作为关键词用 `case-keyword` 检索，必要时转网页端详情页核对。
+如果任务已经明确是“只查法规”，请转到 [pkulaw-mcp-law-retrieval](../pkulaw-mcp-law-retrieval/SKILL.md)。如果已有完整案号，先把案号作为关键词用 `case-keyword` 检索；没有精确匹配或需要从长文本批量识别时，再转 `pkulaw-mcp-case-number`。
 
 ## 先看边界
 
@@ -40,7 +43,7 @@ version: "1.1.0"
 2. 只允许基于当次返回内容做摘要，不得用模型记忆补齐案例细节。
 3. 关键词路径下，`title` 与 `fulltext` 至少有一项；具体参数名仍以 `tools` 输出为准。
 4. 出现 `401/403`、无结果、超时或工具不存在时，只能说明失败原因与下一步建议。
-5. 不得调用或建议调用未订阅的 `case-semantic`、`case-number`、`semantic-nlsql`、`doc-link`。
+5. 不得把 `case-semantic` 当默认入口；它约 125 积分，只能在关键词路径不足且能说明缺口时升级一次。
 
 ## 默认路由
 
@@ -52,8 +55,10 @@ version: "1.1.0"
    - 先提炼案由、争点、核心事实、法律关系等关键词，再走 `case-keyword`
 3. 关键词结果太少：
    - 换案由词、争点词、合同类型、法院层级或核心事实词后重试
+4. 两轮有理由的关键词仍缺少事实相似案例：
+   - 只升级调用一次 `case-semantic`，并记录为什么升级
 
-默认不要假设语义检索可用；本机当前只跑关键词路径。
+不要因用户提供整段案情就直接走语义检索。先由 AI 提炼关键词，通常 25 积分路径已经足够。
 
 ## 推荐工作流
 
@@ -62,7 +67,7 @@ version: "1.1.0"
 3. 用 `tools` 确认真实 `<toolName>` 与参数名。
 4. 完成一次检索。
 5. 只整理当次返回里的案号、法院、裁判日期、摘要、链接等信息。
-6. 若结果不足，再做一次有理由的补检索。
+6. 若结果不足，先做一次有理由的关键词补检索；仍不足才升级语义，不并发调用。
 
 ## 失败与降级
 
@@ -93,6 +98,7 @@ version: "1.1.0"
 ```bash
 pkulaw-mcp tools case-keyword
 pkulaw-mcp case-keyword <toolName> --title "房屋租赁"
+pkulaw-mcp tools case-semantic
 ```
 
 说明：

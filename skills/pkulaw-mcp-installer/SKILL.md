@@ -9,37 +9,29 @@ description: 一键安装/配置北大法宝（pkulaw.com）MCP 服务。当用�
 
 此技能用于一键将北大法宝 MCP 服务配置写入目标 MCP 配置文件，免去手动逐个添加的繁琐操作。适用于团队内部推广、新设备配置、给同事/朋友安装北大法宝法律检索能力等场景。
 
-## 服务选择逻辑
+## 统一积分模式
 
-安装前先问用户已经购买/开通了哪些北大法宝 MCP 服务。用户不一定知道准确英文服务名，可以让用户提供：
+北大法宝 MCP 现在使用统一积分：服务可以在控制台按需开启，真正调用时才扣积分。安装能力与调用成本是两件事：建议把控制台已经开启的服务全部配置到 AI，但执行任务时必须先选成本最低且足够完成任务的服务，不能把 10 项逐个调用一遍。
 
-- 服务名称或购买清单文字；
-- 订单页、服务页、token 页面截图；
-- 北大法宝后台里显示的已开通服务列表。
+| 分类 | 服务名 | 控制台能力 | 约积分/次 | 默认策略 |
+|------|--------|------------|-----------|----------|
+| 法规法条 | `pkulaw-fatiao` | 精准查找法条-关键词 | 25 | 已知法规名和条号时首选 |
+| 法规法条 | `pkulaw-law-keyword` | 检索法律法规-关键词 | 25 | 普通法规研究首选 |
+| 法规法条 | `pkulaw-law-search` | 检索法律法规-语义 | 125 | 两轮合理关键词仍不足时升级 |
+| 司法案例 | `pkulaw-case` | 检索司法案例-关键词 | 25 | 普通类案检索首选 |
+| 司法案例 | `pkulaw-case-search` | 检索司法案例-语义 | 125 | 关键词难以表达事实相似性时升级 |
+| 引用溯源 | `pkulaw-recognition` | 法条识别与溯源 | 125 | 仅用于从非结构化文本识别法条 |
+| 引用溯源 | `pkulaw-hyperlink` | 法宝超链 | 125 | 仅在依据已经核验后补链接 |
+| 引用溯源 | `pkulaw-citation` | 修正生成幻觉-法条 | 125 | 仅在任务明确要求引用核验时调用 |
+| 引用溯源 | `pkulaw-case-number` | 案号识别与溯源 | 125 | 精确案号关键词检索失败或批量提取时调用 |
+| 综合检索 | `pkulaw-nl-sql` | 法律智能检索 | 125 | 无法拆分的跨库复杂问题最后使用 |
 
-根据用户提供的信息，把已购买服务映射成脚本里的 `--services` 参数。不要替用户假定已经购买高级 MCP。用户完全不知道怎么选时，再建议从三项基础 MCP 开始：法规关键词检索、精准法条查找、司法案例关键词检索。
+成本规则：
 
-## 常见基础 MCP 服务
-
-| 服务名 | 对应能力 | URL |
-|--------|----------|-----|
-| pkulaw-law-keyword | 法规关键词检索 | mcp-law |
-| pkulaw-fatiao | 精准法条查找 | mcp-fatiao |
-| pkulaw-case | 司法案例关键词检索 | mcp-case |
-
-## 高级可选 MCP 服务
-
-以下服务只有在用户已经确认购买/开通对应订阅时才建议启用。不要让新手误以为必须一次性购买全部服务。
-
-| 服务名 | 对应能力 | URL |
-|--------|----------|-----|
-| pkulaw-law-search | 法规语义检索 | mcp-law-search-service |
-| pkulaw-case-search | 案例语义检索 | mcp-case-search-service |
-| pkulaw-citation | 引注/引用校验 | pku_citation_validator |
-| pkulaw-hyperlink | 文档链接添加 | add-doc-link |
-| pkulaw-recognition | 法律识别 | law_recognition |
-| pkulaw-nl-sql | 自然语言/跨库检索 | assistant/mcp-pkulaw-search |
-| pkulaw-case-number | 案号识别 | case_number_recognition |
+1. 明确法规词、法条或案由时，先用 25 积分服务。
+2. 先改写一次关键词再考虑升级；不要因第一次无结果立即切换 125 积分服务。
+3. 引用核验、法条识别、补超链等专门任务可以直接调用对应 125 积分服务，但只调用完成任务所需的那一项。
+4. 跨法规与案例的研究先拆成两次 25 积分检索；确实无法拆分或仍有关键缺口时才用综合检索。
 
 ## 触发场景
 
@@ -59,14 +51,14 @@ description: 一键安装/配置北大法宝（pkulaw.com）MCP 服务。当用�
 
 **获取方式**：
 - 用户已有 Token → 优先让用户通过环境变量 `PKULAW_AUTH_TOKEN`、终端交互或本机私有配置提供，不要让用户把真实 Token 写进仓库文件、示例、模板、截图或 Issue
-- 用户没有 Token → 引导用户在浏览器搜索“北大法宝 MCP”，进入北大法宝 MCP 服务页面，按需购买/开通服务。不会选时，建议先从法规关键词检索、精准法条查找、司法案例关键词检索三项开始。页面生成 Token 后，再回到本机用本 skill 配置。
+- 用户没有 Token → 引导用户进入北大法宝 MCP 控制台，在“获取 Token”页面新建 Token、开启需要的服务并复制接入配置。用户可以开启全部 10 项，成本由实际调用决定。
 
-### 步骤二：确认已购买服务
+### 步骤二：确认控制台已开启服务
 
 询问用户：
 
 ```text
-你购买/开通了哪些北大法宝 MCP 服务？可以直接发服务名称、购买页面文字、服务列表截图或 token 页面截图。我会根据这些信息选择要安装的 MCP。
+请确认“获取 Token”页面显示已开启多少项服务。可以提供服务列表文字或截图，但不要展示 Token 明文。我会按控制台已开启项配置，并使用节省积分的调用顺序。
 ```
 
 映射规则：
@@ -74,27 +66,28 @@ description: 一键安装/配置北大法宝（pkulaw.com）MCP 服务。当用�
 - 如果用户说“法规关键词检索”或页面显示 `mcp-law`，安装 `pkulaw-law-keyword`。
 - 如果用户说“精准法条查找/法条检索”或页面显示 `mcp-fatiao`，安装 `pkulaw-fatiao`。
 - 如果用户说“司法案例关键词检索/案例检索”或页面显示 `mcp-case`，安装 `pkulaw-case`。
-- 如果用户提供高级服务名称，再按高级可选 MCP 表映射。
-- 如果无法从截图/文字判断，先问清楚，不要乱装高级服务。
+- 控制台显示 `10/10 已开` 时，安装全部 10 项。
+- 只开启部分服务时，按上表映射为 `--services` 参数；不要配置控制台未开启的服务。
+- 截图无法判断时，可以让用户直接复制服务名称，不要求用户发送 Token 明文。
 
 ### 步骤三：执行安装脚本
 
-根据已确认服务运行安装脚本。示例：只安装基础三项时：
+控制台已开启全部 10 项时，直接运行：
 
 ```bash
 PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --mcp-path ~/.workbuddy/mcp.json
 ```
 
-安装用户已购买的指定服务时：
+脚本默认配置全部 10 项。只想配置 3 项经济型检索服务时：
 
 ```bash
-PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --services pkulaw-citation,pkulaw-hyperlink --mcp-path ~/.workbuddy/mcp.json
+PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --services economy --mcp-path ~/.workbuddy/mcp.json
 ```
 
-只有用户确认已购买全部高级 MCP 时，才使用：
+只配置控制台已开启的指定服务时：
 
 ```bash
-PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --services all --mcp-path ~/.workbuddy/mcp.json
+PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --services pkulaw-law-keyword,pkulaw-fatiao,pkulaw-case,pkulaw-citation --mcp-path ~/.workbuddy/mcp.json
 ```
 
 脚本会：
@@ -105,9 +98,10 @@ PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --services all --m
 **可选参数**：
 
 - `--mcp-path <path>` 指定自定义配置路径。常见目标包括 WorkBuddy 的 `~/.workbuddy/mcp.json`，或其他运行时自己的 MCP 配置文件。
-- `--services basic` 只安装基础三项；用户未提供购买信息时可作为保守默认值。
-- `--services all` 或 `--include-advanced` 安装全部服务，仅适合已经确认全部订阅的用户。
-- `--services 服务名1,服务名2` 只安装用户已购买的指定服务。
+- `--services all` 是默认值，安装全部 10 项。
+- `--services economy` 或 `basic` 只安装三个 25 积分检索服务。
+- `--services 服务名1,服务名2` 只安装控制台已开启的指定服务。
+- `--include-advanced` 是兼容旧版的参数，等同于 `--services all`。
 
 ### 步骤四：确认安装结果
 
@@ -119,6 +113,13 @@ PKULAW_AUTH_TOKEN="..." python3 scripts/install_pkulaw_mcp.py --services all --m
 - 尝试使用 pkulaw-law-keyword 检索一条法规
 - 尝试使用 pkulaw-fatiao 获取一个已知法条
 - 尝试使用 pkulaw-case 搜索一个案例
+
+安装完成后的研究任务应交给 `pkulaw-mcp-legal-research` 总路由。需要确定性检查路由时，可运行：
+
+```bash
+python3 ../pkulaw-mcp-legal-research/scripts/recommend_route.py --intent law-topic
+python3 ../pkulaw-mcp-legal-research/scripts/recommend_route.py --intent case-topic
+```
 
 ## 卸载
 
@@ -136,5 +137,6 @@ python3 scripts/uninstall_pkulaw_mcp.py --mcp-path ~/.workbuddy/mcp.json
 2. **增量合并**：安装脚本采用合并策略，不会删除用户已有的其他 MCP 配置
 3. **重复安装**：如果已安装过，再次运行会更新 Token（适用于 Token 过期后更换）
 4. **重启生效**：修改 MCP 配置后通常必须重启目标运行时才能加载新配置
-5. **订阅要求**：先按用户购买信息安装；高级 MCP 只有在用户确认已购买/开通时才启用
-6. **网络要求**：所有 MCP 服务需要访问 `apim-gateway.pkulaw.com`，确保网络可达
+5. **积分控制**：安装全部服务不等于每次全部调用；先用 25 积分服务，必要时再升级到 125 积分服务
+6. **控制台开关**：配置项应与“获取 Token”页面当前已开启服务一致
+7. **网络要求**：所有 MCP 服务需要访问 `apim-gateway.pkulaw.com`，确保网络可达

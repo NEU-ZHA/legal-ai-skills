@@ -1,9 +1,10 @@
 ---
 name: pkulaw-mcp-governance-research-memo
 description: >
-  公司治理研究备忘工作流，用于把股权、决议、董事责任、控制权、关联交易等问题整理成可讨论、可继续深挖、可流转的研究备忘。Use when：律师、法务、董办、投融资或研究同学面对的问题跨规则与实践、需要先综合召回再分流研究。NOT for：单条法条原文查询、单案深度诉讼策略、以及只需单一路径检索的简单问题。要求先界定研究问题与范围，再综合召回与分流；未核验的具体法条不得写成确定依据。
+  公司治理研究备忘工作流，用于把股权、决议、董事责任、控制权、关联交易等问题整理成可复核的研究备忘。Use when：问题跨规则与裁判实践。默认先拆成法规与案例关键词检索，只有定向检索仍有关键缺口时才升级综合语义召回。NOT for：单条法条或单案查询；未核验法条不得写成确定依据。
 license: MIT
 metadata:
+  version: "1.2.0"
   pkulaw:
     workflow_type: composed
     protocol: MCP
@@ -16,7 +17,6 @@ metadata:
       - pkulaw-mcp-citation-validator
       - pkulaw-mcp-doc-link
     mcp_cli: "@pkulaw/mcp-cli"
-version: "1.1.0"
 ---
 
 # 北大法宝 MCP：Governance Research Memo（公司治理研究备忘）
@@ -65,8 +65,8 @@ version: "1.1.0"
 ## 推荐工作流
 
 1. 界定问题：把宽泛问题缩成可检索的研究问题。
-2. 综合召回：优先用 `semantic-nlsql` 做第一轮候选召回。
-3. 分流补检：法规线索再做法规检索，案例线索再做案例检索。
+2. 经济型召回：先拆成法规与案例问题，分别用 `law-keyword` 和 `case-keyword` 检索。
+3. 必要时升级：问题无法可靠拆分或两条关键词路径仍有关键缺口时，再用一次 `semantic-nlsql`。
 4. 形成备忘：规则、案例、初步倾向、反向风险、待研究问题分开写。
 5. 核验引用：明确法条或司法解释时，用 `citation-validator` 核验。
 6. 链接增强：需要流转或沉淀时，用 `doc-link` 做增强。

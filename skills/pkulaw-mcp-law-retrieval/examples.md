@@ -11,13 +11,13 @@
 ### 推荐行为
 
 1. 这是法规依据检索问题，不是案例检索问题。
-2. 用户给的是自然语言咨询，应优先走 `law-semantic`。
-3. 只在语义结果太宽时，再补一次 `law-keyword`。
+2. 先把自然语言问题提炼成“旷工解除”“规章制度”“解除程序”等关键词，优先走 `law-keyword`。
+3. 换一组合理关键词仍找不到相关规范时，才升级一次 `law-semantic`。
 
 ### 推荐命令
 
 ```bash
-pkulaw-mcp law-semantic <toolName> --text "员工连续旷工三天 公司能否解除劳动合同 法律依据"
+pkulaw-mcp law-keyword <toolName> --fulltext "旷工 解除劳动合同 规章制度"
 ```
 
 ### 推荐输出
@@ -27,7 +27,7 @@ pkulaw-mcp law-semantic <toolName> --text "员工连续旷工三天 公司能否
 当前问题聚焦于：员工连续旷工情况下，解除劳动合同可优先关注哪些法规依据。
 
 ## 检索路径
-- 已优先使用 `law-semantic`
+- 已优先使用 25 积分的 `law-keyword`
 
 ## 关键结果片段
 - [此处摘录本次返回中的法规标题、条文片段或摘要]

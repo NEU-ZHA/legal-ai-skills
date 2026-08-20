@@ -1,6 +1,6 @@
 ---
 name: pkulaw-legal-search
-description: 用户自建的北大法宝（pkulaw.com）网页/Computer Use 检索入口与兜底流程。用于 MCP 结果不足、需要登录网页详情页、需要复制/核验 URL、需要 IP/机构登录状态、或需要像人一样操作北大法宝网页时。当前本机也已配置三个北大法宝 MCP：检索法律法规-关键词、精准查找法条-关键词、检索司法案例-关键词；能用 MCP 时先用 MCP，网页/Computer Use 负责补查和核验。不要把本 skill 视为可被原生 MCP skill 替代的重复项。
+description: 用户自建的北大法宝（pkulaw.com）网页/Computer Use 检索入口与兜底流程。用于成本感知 MCP 检索结果不足、需要登录网页详情页、复制/核验 URL、使用机构登录状态或操作网页筛选时。能用 MCP 时先按 `pkulaw-mcp-legal-research` 路由，网页负责补查和核验。
 ---
 
 # 北大法宝网页/Computer Use 检索技能
@@ -13,19 +13,19 @@ description: 用户自建的北大法宝（pkulaw.com）网页/Computer Use 检�
 - MCP 不通、当前会话没加载对应工具、返回 401/403/超时/无结果、结果不足、需要登录详情页、需要网页筛选、需要复制真实 URL、或需要确认页面可见内容时，转入本 skill 的网页/Computer Use 流程。
 - 在 Codex 桌面环境中，网页端优先用 Computer Use 操作本机浏览器，因为它更可能保留学校/IP/机构登录状态。
 
-## 当前可用 MCP 范围（2026-05-27 更新配置）
+## MCP 与网页的分工
 
-本机目前应优先调用以下三个北大法宝 MCP：
+统一积分模式下，可以配置 10 项 MCP，但普通检索仍应优先调用以下三个约 25 积分服务：
 
 - `mcp__pkulaw_law_keyword__get_law_list`：检索法律法规-关键词。输入 `title` 和/或 `fulltext`，返回法规列表前 10 条。
 - `mcp__pkulaw_fatiao__get_law_item_content`：精准查找法条-关键词。适合已知法规名、条号或需要条文原文时使用；参数为 `title` 和 `tiao_num`。
 - `mcp__pkulaw_case__get_case_list`：检索司法案例-关键词。输入 `title` 和/或 `fulltext`，返回案例列表前 10 条。
 
-以下旧 MCP 不再作为可用通道写入检索计划，也不要提示用户先用它们：`pkulaw_law_search`、`pkulaw_case_search`、`pkulaw_case_number`、`pkulaw_citation`、`pkulaw_recognition`、`pkulaw_hyperlink`、`pkulaw_nl_sql`。如任务确实需要这些能力，直接说明当前只订阅关键词/精准法条/案例检索，并转网页端北大法宝或请用户追加订阅。
+法规语义、案例语义、法条识别、引用校验、超链、案号识别和综合检索属于约 125 积分服务。只有关键词检索不足或任务明确需要对应专门能力时才调用；不能把 10 项全部跑一遍。是否可用以当前控制台开关和 MCP `tools/list` 为准。
 
 优先级必须按以下顺序执行：
 
-1. **先用三个已配置 MCP**：法规列表用 `get_law_list`，精准法条用 `get_law_item_content`，案例用 `get_case_list`。
+1. **先用经济型 MCP**：法规列表用 `get_law_list`，精准法条用 `get_law_item_content`，案例用 `get_case_list`。
 2. **再用网页**：MCP 找不到、结果不足、需要登录后详情页或需要确认页面 URL 时，再访问北大法宝网页。
 3. **Codex 中优先 Computer Use**：如果在 Codex 桌面环境且页面需要 IP 登录/机构登录/真实浏览器状态，优先用 Computer Use 操作本机浏览器或已登录页面。
 4. **camoufox/Agent Browser 仅作后备**：当没有 MCP、没有 Computer Use、或任务明确要求 camoufox/Agent Browser 时，才用 camoufox-cli/Agent Browser。
