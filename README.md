@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/neu-zha-legal-ai-skills-badge.png)](https://mseep.ai/app/neu-zha-legal-ai-skills)
+
 # Legal AI Skills / 法律 AI 技能集
 
 一组可开源复用的 AI agent skills，面向法律检索、北大法宝 MCP、法学引注核验、Word/DOCX 文书处理和法律写作事实核查。
