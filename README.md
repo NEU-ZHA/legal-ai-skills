@@ -241,6 +241,14 @@ docs/法学引注手册本地配置说明.md
 
 ## 技能清单 / Included Skills
 
+### 最近更新 / Recent Updates (2026-10-09)
+
+- 作业目录：改进 WPS 嵌套目录域和数字样式识别，防止重复编号和普通列表误入目录；短作业默认两级目录，支持关闭目录超链接以处理更新后变蓝的问题。最终页码仍需在 Word/WPS 更新目录后核对。
+- 事实核查：按本次任务范围核对来源、数字与引用，复用未变更的核验记录；不再强制全文转换、固定三遍检查或额外生成声明文件。
+- 法宝检索：接口失败后可继续使用用户材料和可靠网页原文，并说明实际来源；保留现有低成本检索优先规则。
+
+Homework TOC repair now handles WPS nested fields and numeric style IDs more carefully, with two levels by default and an option to omit TOC hyperlinks. Fact checking follows the requested scope without mandatory full-document conversion or repeated passes. PKULaw research can continue with reliable supplied or web sources when an interface fails, while retaining lower-cost routing.
+
 ### 北大法宝与法律检索 / PKULaw MCP and Legal Research
 
 说明：这里的部分 PKULaw workflow skill 是根据公开可见资料、公开接口说明和个人使用经验整理的社区/个人工作流，不是北大法宝官方发布的产品说明，也不包含任何真实 token、账号、cookie 或私有数据库内容。实际服务名称、开关状态和积分价格请以用户当时的北大法宝 MCP 控制台为准。

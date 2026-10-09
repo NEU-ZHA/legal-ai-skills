@@ -136,6 +136,20 @@ LEVEL_PATTERNS = {
     "3": re.compile(r"^\d{1,2}[.．]\s*\S"),
 }
 
+TOC_STYLE_ALIASES = {
+    "TOC10": {"toc 标题1", "toc heading 1", "toc title", "目录标题"},
+    "TOC1": {"toc 1", "目录 1"},
+    "TOC2": {"toc 2", "目录 2"},
+    "TOC3": {"toc 3", "目录 3"},
+}
+
+TOC_STYLE_DISPLAY_NAMES = {
+    "TOC10": "Homework TOC Title",
+    "TOC1": "Homework TOC 1",
+    "TOC2": "Homework TOC 2",
+    "TOC3": "Homework TOC 3",
+}
+
 
 @dataclass
 class Heading:
@@ -165,20 +179,51 @@ def get_p_style(p: etree._Element) -> str | None:
     return node.get(qn("val")) if node is not None else None
 
 
-def ensure_p_style(p: etree._Element, style_id: str) -> None:
+def set_outline_level(p: etree._Element, value: str) -> None:
+    """Set a direct outline level without replacing the paragraph's style."""
     p_pr = p.find("w:pPr", NS)
     if p_pr is None:
         p_pr = el("pPr")
         p.insert(0, p_pr)
-    p_style = p_pr.find("w:pStyle", NS)
-    if p_style is None:
-        p_pr.insert(0, el("pStyle", {qn("val"): style_id}))
+    outline = p_pr.find("w:outlineLvl", NS)
+    if outline is None:
+        outline = el("outlineLvl", {qn("val"): value})
+        insert_before_first(p_pr, outline, {
+            "divId", "cnfStyle", "rPr", "sectPr", "pPrChange"
+        })
     else:
-        p_style.set(qn("val"), style_id)
+        outline.set(qn("val"), value)
 
 
-def text_run(text: str):
+def suppress_inherited_numbering(p: etree._Element) -> None:
+    """Prevent a manual heading prefix from stacking with style numbering."""
+    p_pr = p.find("w:pPr", NS)
+    if p_pr is None:
+        p_pr = el("pPr")
+        p.insert(0, p_pr)
+    num_pr = p_pr.find("w:numPr", NS)
+    if num_pr is None:
+        num_pr = el("numPr")
+        insert_before_first(p_pr, num_pr, {
+            "suppressLineNumbers", "pBdr", "shd", "tabs", "suppressAutoHyphens",
+            "kinsoku", "wordWrap", "overflowPunct", "topLinePunct", "autoSpaceDE",
+            "autoSpaceDN", "bidi", "adjustRightInd", "snapToGrid", "spacing", "ind",
+            "contextualSpacing", "mirrorIndents", "suppressOverlap", "jc",
+            "textDirection", "textAlignment", "textboxTightWrap", "outlineLvl", "divId",
+            "cnfStyle", "rPr", "sectPr", "pPrChange",
+        })
+    else:
+        for child in list(num_pr):
+            num_pr.remove(child)
+    num_pr.append(el("numId", {qn("val"): "0"}))
+
+
+def text_run(text: str, *, black: bool = False):
     r = el("r")
+    if black:
+        r_pr = el("rPr")
+        r_pr.append(el("color", {qn("val"): "000000"}))
+        r.append(r_pr)
     r.append(el("t", {f"{{{XML_NS}}}space": "preserve"}, text))
     return r
 
@@ -428,11 +473,11 @@ def toc_entry(style_id: str, title: str, page_hint: str):
                 "pPrChange",
             },
         )
-    p.append(text_run(title))
+    p.append(text_run(title, black=True))
     tab_run = el("r")
     tab_run.append(el("tab"))
     p.append(tab_run)
-    p.append(text_run(page_hint))
+    p.append(text_run(page_hint, black=True))
     return p
 
 
@@ -450,7 +495,45 @@ def paragraph_is_short_heading(text: str) -> bool:
     return not any(mark in text for mark in sentence_marks)
 
 
-def collect_and_repair_headings(document: etree._Element) -> tuple[list[Heading], list[str]]:
+def effective_outline_level(p: etree._Element, styles: etree._Element) -> str | None:
+    direct = p.find("w:pPr/w:outlineLvl", NS)
+    if direct is not None:
+        return direct.get(qn("val"))
+    style_id = get_p_style(p)
+    if not style_id:
+        return None
+    values = styles.xpath(
+        f'//w:style[@w:styleId="{style_id}"]/w:pPr/w:outlineLvl/@w:val',
+        namespaces=NS,
+    )
+    return values[0] if values else None
+
+
+def paragraph_style_name(p: etree._Element, styles: etree._Element) -> str:
+    style_id = get_p_style(p)
+    if not style_id:
+        return ""
+    values = styles.xpath(
+        '//w:style[@w:styleId=$style_id]/w:name/@w:val',
+        namespaces=NS,
+        style_id=style_id,
+    )
+    return values[0].strip() if values else ""
+
+
+def has_heading_style_signal(
+    p: etree._Element, styles: etree._Element, outline_level: str | None
+) -> bool:
+    """Require evidence beyond a short numbered prefix before mutating a paragraph."""
+    if outline_level in {"0", "1", "2"}:
+        return True
+    name = paragraph_style_name(p, styles).casefold()
+    return "标题" in name or bool(re.search(r"\b(?:heading|title|step)\b", name))
+
+
+def collect_and_repair_headings(
+    document: etree._Element, styles: etree._Element, max_level: int
+) -> tuple[list[Heading], list[str]]:
     headings: list[Heading] = []
     uncertain: list[str] = []
 
@@ -458,18 +541,29 @@ def collect_and_repair_headings(document: etree._Element) -> tuple[list[Heading]
         text = p_text(p)
         if not text:
             continue
-        style_id = get_p_style(p)
         text_level = level_from_text(text)
+        outline_level = effective_outline_level(p, styles)
 
-        if style_id in {"1", "2", "3"} and text_level == style_id:
-            headings.append(Heading(style_id, text, p, "style-text-match"))
-        elif style_id in {"1", "2", "3"} and text_level is None:
-            uncertain.append(f"style {style_id} but text not numbered: {text[:60]}")
-        elif text_level and paragraph_is_short_heading(text):
-            ensure_p_style(p, text_level)
-            headings.append(Heading(text_level, text, p, "text-detected-style-added"))
-        elif style_id in {"1", "2", "3"} and text_level != style_id:
-            uncertain.append(f"style/text mismatch style={style_id} text_level={text_level}: {text[:60]}")
+        is_short_numbered = bool(text_level and paragraph_is_short_heading(text))
+        if text_level and int(text_level) <= max_level and is_short_numbered:
+            if not has_heading_style_signal(p, styles, outline_level):
+                uncertain.append(
+                    "numbered short paragraph lacks corroborating heading style/outline; "
+                    f"left unchanged: {text[:60]}"
+                )
+                continue
+            suppress_inherited_numbering(p)
+            expected_outline = str(int(text_level) - 1)
+            if outline_level != expected_outline:
+                set_outline_level(p, expected_outline)
+            headings.append(Heading(text_level, text, p, "text-detected-outline-ensured"))
+        elif text_level:
+            continue
+        elif outline_level in {"0", "1", "2"}:
+            uncertain.append(
+                f"outline level {outline_level} but text is not a recognized numbered heading; "
+                f"left unchanged: {text[:60]}"
+            )
 
     return headings, uncertain
 
@@ -520,29 +614,101 @@ def add_page_break_before(p: etree._Element) -> None:
         )
 
 
-def copy_missing_styles(actual_styles: etree._Element, template_styles: etree._Element) -> bool:
+def find_toc_style(styles: etree._Element, style_id: str) -> etree._Element | None:
+    direct = styles.xpath(f'//w:style[@w:styleId="{style_id}"]', namespaces=NS)
+    if direct:
+        return direct[0]
+    aliases = {name.casefold() for name in TOC_STYLE_ALIASES[style_id]}
+    for style in styles.xpath('//w:style[@w:type="paragraph"]', namespaces=NS):
+        name = style.xpath("string(w:name/@w:val)", namespaces=NS).strip().casefold()
+        if name in aliases:
+            return style
+    return None
+
+
+def is_toc_paragraph_style(
+    styles: etree._Element | None, style_id: str | None
+) -> bool:
+    """Recognize canonical and WPS-renumbered TOC paragraph styles."""
+    if not style_id:
+        return False
+    if style_id in TOC_STYLE_ALIASES or style_id.startswith("TOC"):
+        return True
+    if styles is None:
+        return False
+    matches = styles.xpath(
+        '//w:style[@w:styleId=$style_id]',
+        namespaces=NS,
+        style_id=style_id,
+    )
+    if not matches:
+        return False
+    style_name = matches[0].xpath(
+        "string(w:name/@w:val)", namespaces=NS
+    ).strip().casefold()
+    aliases = {
+        alias.casefold()
+        for style_aliases in TOC_STYLE_ALIASES.values()
+        for alias in style_aliases
+    }
+    return style_name in aliases
+
+
+def copy_missing_styles(
+    actual_styles: etree._Element, template_styles: etree._Element, max_level: int
+) -> bool:
     changed = False
-    for style_id in ["TOC1", "TOC2", "TOC3", "TOC10", "1", "2", "3"]:
-        exists = actual_styles.xpath(f'//w:style[@w:styleId="{style_id}"]', namespaces=NS)
-        if exists:
+    required = ["TOC10", "TOC1", "TOC2"]
+    if max_level == 3:
+        required.append("TOC3")
+    for style_id in required:
+        if actual_styles.xpath(f'//w:style[@w:styleId="{style_id}"]', namespaces=NS):
             continue
-        source = template_styles.xpath(f'//w:style[@w:styleId="{style_id}"]', namespaces=NS)
-        if source:
-            actual_styles.append(etree.fromstring(etree.tostring(source[0])))
-            changed = True
+        source = find_toc_style(template_styles, style_id)
+        if source is None:
+            source = find_toc_style(actual_styles, style_id)
+        if source is None and style_id == "TOC3":
+            source = find_toc_style(template_styles, "TOC2")
+            if source is None:
+                source = find_toc_style(actual_styles, "TOC2")
+        if source is None:
+            raise ValueError(f"Template has no usable {style_id} paragraph style")
+        clone = etree.fromstring(etree.tostring(source))
+        clone.set(qn("styleId"), style_id)
+        name = clone.find("w:name", NS)
+        if name is None:
+            name = el("name", {qn("val"): TOC_STYLE_DISPLAY_NAMES[style_id]})
+            clone.insert(0, name)
+        else:
+            name.set(qn("val"), TOC_STYLE_DISPLAY_NAMES[style_id])
+        actual_styles.append(clone)
+        changed = True
     return changed
 
 
-def remove_heading_num_pr(styles: etree._Element) -> bool:
+def force_toc_styles_black(styles: etree._Element) -> bool:
+    """Prevent TOC titles and entries from inheriting theme/hyperlink blue."""
     changed = False
-    for style_id in ["1", "2", "3"]:
+    for style_id in ["TOC1", "TOC2", "TOC3", "TOC10"]:
         for style in styles.xpath(f'//w:style[@w:styleId="{style_id}"]', namespaces=NS):
-            p_pr = style.find("w:pPr", NS)
-            if p_pr is None:
-                continue
-            for num_pr in p_pr.findall("w:numPr", NS):
-                p_pr.remove(num_pr)
+            r_pr = style.find("w:rPr", NS)
+            if r_pr is None:
+                r_pr = el("rPr")
+                style.append(r_pr)
                 changed = True
+            color = r_pr.find("w:color", NS)
+            if color is None:
+                color = el("color", {qn("val"): "000000"})
+                r_pr.append(color)
+                changed = True
+            if color.get(qn("val")) != "000000":
+                color.set(qn("val"), "000000")
+                changed = True
+            for attr in ("themeColor", "themeTint", "themeShade"):
+                key = qn(attr)
+                if key in color.attrib:
+                    del color.attrib[key]
+                    changed = True
     return changed
 
 
@@ -556,40 +722,117 @@ def remove_auto_update_fields(settings_path: Path) -> bool:
     return False
 
 
-def clean_existing_toc(body: etree._Element) -> None:
+def clean_existing_toc(
+    body: etree._Element, styles: etree._Element | None = None
+) -> None:
     # Remove existing TOC content controls and simple generated blocks with TOC fields.
     for sdt in list(body.findall("w:sdt", NS)):
-        if "目录" in p_text(sdt) or sdt.xpath(".//w:instrText[contains(., 'TOC')]", namespaces=NS):
+        instr = " ".join(sdt.xpath(".//w:instrText/text()", namespaces=NS))
+        galleries = sdt.xpath(".//w:docPartGallery/@w:val", namespaces=NS)
+        is_toc_gallery = any(value.strip().lower() == "table of contents" for value in galleries)
+        if re.search(r"(?:^|\s)TOC\s+\\", instr) or is_toc_gallery:
             body.remove(sdt)
 
     children = list(body)
     remove_indices: set[int] = set()
-    in_toc = False
+
+    # WPS may put nested HYPERLINK/PAGEREF fields inside every TOC entry. An
+    # arbitrary fldChar end therefore does not close the outer TOC field. Find
+    # the paragraph containing the actual TOC instruction and follow the net
+    # complex-field depth until its matching outer end paragraph.
+    toc_start: int | None = None
     for i, node in enumerate(children):
         if node.tag != qn("p"):
             continue
-        instr = "".join(node.xpath(".//w:instrText/text()", namespaces=NS))
+        instr = " ".join(node.xpath(".//w:instrText/text()", namespaces=NS))
+        if re.search(r"(?:^|\s)TOC\s+\\", instr):
+            toc_start = i
+            break
+
+    if toc_start is not None:
+        start = toc_start
+        if toc_start > 0 and children[toc_start - 1].tag == qn("p"):
+            previous = children[toc_start - 1]
+            previous_style = get_p_style(previous) or ""
+            if p_text(previous) == "目录" or is_toc_paragraph_style(styles, previous_style):
+                start = toc_start - 1
+
+        depth = 0
+        seen_begin = False
+        matched_end: int | None = None
+        for i in range(toc_start, len(children)):
+            node = children[i]
+            if node.tag != qn("p"):
+                raise ValueError("Malformed existing TOC: non-paragraph content before matching end")
+            instr = " ".join(node.xpath(".//w:instrText/text()", namespaces=NS))
+            text = p_text(node)
+            style_id = get_p_style(node) or ""
+            begins = len(node.xpath(".//w:fldChar[@w:fldCharType='begin']", namespaces=NS))
+            ends = len(node.xpath(".//w:fldChar[@w:fldCharType='end']", namespaces=NS))
+            is_outer_start = bool(re.search(r"(?:^|\s)TOC\s+\\", instr))
+            is_nested_toc_field = "_Toc" in instr and (
+                "HYPERLINK" in instr or "PAGEREF" in instr
+            )
+            is_toc_style = is_toc_paragraph_style(styles, style_id)
+            is_empty_field_end = not text and not instr and ends > 0
+            if i > toc_start and not (
+                is_outer_start or is_nested_toc_field or is_toc_style or is_empty_field_end
+            ):
+                raise ValueError(
+                    "Malformed existing TOC: ordinary document content appears before matching end"
+                )
+            if begins:
+                seen_begin = True
+            depth += begins - ends
+            if seen_begin and depth == 0:
+                matched_end = i
+                break
+        if not seen_begin or matched_end is None:
+            raise ValueError("Malformed existing TOC: outer complex field has no matching end")
+        remove_indices.update(range(start, matched_end + 1))
+
+    # Also remove a static/partially broken TOC or orphaned WPS preview entries
+    # left by an earlier failed repair. Only inspect instrText here; legitimate
+    # body bookmarkStart elements named _Toc... must remain untouched.
+    in_static_toc = False
+    for i, node in enumerate(children):
+        if i in remove_indices or node.tag != qn("p"):
+            continue
+        instr = " ".join(node.xpath(".//w:instrText/text()", namespaces=NS))
         text = p_text(node)
-        style_id = get_p_style(node)
-        if "TOC" in instr or text == "目录" or (style_id or "").startswith("TOC"):
-            in_toc = True
+        style_id = get_p_style(node) or ""
+        is_orphan_entry = "_Toc" in instr and ("PAGEREF" in instr or "HYPERLINK" in instr)
+        is_toc_piece = (
+            text == "目录"
+            or is_toc_paragraph_style(styles, style_id)
+            or is_orphan_entry
+        )
+        if is_toc_piece:
+            in_static_toc = True
             remove_indices.add(i)
-            if node.xpath(".//w:fldChar[@w:fldCharType='end']", namespaces=NS):
-                in_toc = False
-        elif in_toc:
-            remove_indices.add(i)
-            if node.xpath(".//w:fldChar[@w:fldCharType='end']", namespaces=NS):
-                in_toc = False
+        elif in_static_toc:
+            is_empty_outer_end = not text and bool(
+                node.xpath(".//w:fldChar[@w:fldCharType='end']", namespaces=NS)
+            )
+            if is_empty_outer_end:
+                remove_indices.add(i)
+            break
 
     for i in sorted(remove_indices, reverse=True):
         body.remove(children[i])
 
 
-def toc_paragraphs(headings: list[Heading]) -> list[etree._Element]:
+def toc_paragraphs(
+    headings: list[Heading], max_level: int, *, hyperlinks: bool = True
+) -> list[etree._Element]:
     paragraphs = [toc_title_p()]
     begin = styled_p("TOC1", include_spacing=False)
     begin.append(field_run("begin"))
-    begin.append(instr_run(' TOC \\o "1-3" \\h \\z \\u '))
+    instruction = f' TOC \\o "1-{max_level}"'
+    if hyperlinks:
+        instruction += " \\h"
+    instruction += " \\z "
+    begin.append(instr_run(instruction))
     begin.append(field_run("separate"))
     paragraphs.append(begin)
 
@@ -603,7 +846,16 @@ def toc_paragraphs(headings: list[Heading]) -> list[etree._Element]:
     return paragraphs
 
 
-def build(input_docx: Path, template_docx: Path, output_docx: Path) -> list[str]:
+def build(
+    input_docx: Path,
+    template_docx: Path,
+    output_docx: Path,
+    max_level: int = 2,
+    *,
+    hyperlinks: bool = True,
+) -> list[str]:
+    if max_level not in {2, 3}:
+        raise ValueError("max_level must be 2 or 3")
     with tempfile.TemporaryDirectory(prefix="homework_toc_") as tmp_name:
         tmp = Path(tmp_name)
         with zipfile.ZipFile(input_docx) as zin:
@@ -617,16 +869,23 @@ def build(input_docx: Path, template_docx: Path, output_docx: Path) -> list[str]
 
         document = etree.fromstring(document_path.read_bytes())
         styles = etree.fromstring(styles_path.read_bytes())
-        styles_changed = copy_missing_styles(styles, template_styles)
-        styles_changed = remove_heading_num_pr(styles) or styles_changed
+        styles_changed = copy_missing_styles(styles, template_styles, max_level)
+        styles_changed = force_toc_styles_black(styles) or styles_changed
 
         body = document.find("w:body", NS)
-        clean_existing_toc(body)
-        headings, uncertain = collect_and_repair_headings(document)
+        clean_existing_toc(body, styles)
+        for paragraph in body.findall("w:p", NS):
+            text = p_text(paragraph)
+            if not text:
+                continue
+            if level_from_text(text) is None:
+                set_outline_level(paragraph, "9")
+            break
+        headings, uncertain = collect_and_repair_headings(document, styles, max_level)
         if not headings:
             raise SystemExit("No confident heading paragraphs found for TOC.")
 
-        paragraphs = toc_paragraphs(headings)
+        paragraphs = toc_paragraphs(headings, max_level, hyperlinks=hyperlinks)
         for offset, paragraph in enumerate(paragraphs, start=1):
             body.insert(offset, paragraph)
 
@@ -679,9 +938,27 @@ def main() -> None:
     parser.add_argument("input_docx", type=Path)
     parser.add_argument("template_docx", type=Path)
     parser.add_argument("output_docx", type=Path)
+    parser.add_argument(
+        "--max-level",
+        type=int,
+        choices=(2, 3),
+        default=2,
+        help="deepest TOC level to include (default: 2; use 3 only when justified)",
+    )
+    parser.add_argument(
+        "--no-hyperlinks",
+        action="store_true",
+        help="omit the TOC hyperlink switch if Word/WPS renders updated entries blue",
+    )
     args = parser.parse_args()
 
-    uncertain = build(args.input_docx, args.template_docx, args.output_docx)
+    uncertain = build(
+        args.input_docx,
+        args.template_docx,
+        args.output_docx,
+        max_level=args.max_level,
+        hyperlinks=not args.no_hyperlinks,
+    )
     print(args.output_docx)
     if uncertain:
         print("需人工确认标题:")

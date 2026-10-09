@@ -25,7 +25,7 @@ This public version must never default to the maintainer's personal information 
 
 Before generating a title, filename, header, or metadata, ask the user for:
 
-- assignment date prefix;
+- assignment date/course prefix, only if the current instructions require one;
 - assignment number/title;
 - student name;
 - student ID, if required;
@@ -57,15 +57,16 @@ When the user asks to "strictly follow the homework skill" or provides the cours
 
 - Use the user-provided reference template as the ZIP/DOCX base when available, not a blank document.
 - Match the course PPT's "三名同一" rule: email subject, attachment file name, and document title should be identical.
+- Derive the title pattern from the current assignment or instructor instructions. Do not carry a date prefix or `graded homework N` wording from an older course merely because it appears in a reused template. If the user supplies the intended filename, use its basename as the document title unless the current assignment requires a different title.
 - Main title: 小三, centered, no first-line indent, `spacing after="156"`, split the title into runs so Chinese name and hyphens render in 宋体 while English/date/student ID render in Times New Roman.
 - Body paragraphs: 五号, 宋体/Times New Roman, first-line indent `420` twips, line spacing `300` (1.25x), paragraph after `156` twips, justified alignment.
 - Paragraph-after unit check: `w:after="156"` is stored in OOXML twips, equal to 7.8 pt because Word uses twentieths of a point. In the civil-law reference template this corresponds to half of the document grid line pitch (`docGrid linePitch="312"`), so Word/WPS may display the same setting as about `0.5 行` or `7.8 磅` depending on UI/context. Treat these as equivalent, not conflicting.
 - Footnotes: 小五, 宋体/Times New Roman, single line spacing, left aligned, no first-line indent, no paragraph spacing before/after.
 - Footnote numbering: remove `<w:numRestart w:val="eachPage"/>` from `word/settings.xml` and any section-level `footnotePr`; homework footnotes should number continuously across the whole document. The reference template contains `eachPage`, but that setting causes duplicate-looking footnote numbers page by page.
-- If using manual Chinese heading numbers such as `一、` and `二、`, remove `<w:numPr>` from heading styles `1`, `2`, and `3`; otherwise Word may visually render duplicate numbering.
+- If a heading already contains a manual Chinese prefix such as `一、` or `（一）`, suppress any inherited automatic numbering on that confirmed paragraph (for example, direct `<w:numPr><w:numId w:val="0"/></w:numPr>`). Preserve its existing paragraph style. Do not globally rewrite styles `1/2/3` merely by numeric ID: WPS may renumber style IDs, and the same style may still be needed by genuinely auto-numbered paragraphs.
 - If the document was generated from Markdown/Pandoc or any converter that applies Word `Heading1`/`Heading2` styles, do not only override run fonts and sizes. Also remove inherited heading paragraph styles and decorations from the final document, or Word may still render blue/green heading colors and automatic bullets/numbering:
   - remove `<w:pStyle w:val="Heading1"/>`, `<w:pStyle w:val="Heading2"/>`, and similar converted heading styles from manually numbered titles/headings;
-  - remove paragraph-level `<w:numPr>` from all title/heading paragraphs;
+  - during artifact cleanup, remove converter-generated direct `<w:numPr>` from titles/headings. After assigning the final course style/outline, a confirmed manually numbered heading must end with direct `w:numId=0` if its retained style inherits automatic numbering; cleanup is not the final numbering state;
   - clear run-level `<w:color>` values inherited from styles/themes, especially `w:themeColor`, then set direct black color `<w:color w:val="000000"/>`;
   - remove `<w:highlight>` and `<w:shd>` on generated title/heading runs unless the user explicitly asks for color.
   - run `python3 scripts/fix_pandoc_heading_artifacts.py input.docx --output output.docx` before the final compatibility check when the source DOCX came from Pandoc/Markdown.
@@ -116,7 +117,7 @@ Based on the reference template's `styles.xml`:
 
 1. **Homework questions** (PDF/DOCX) - assignment requirements
 2. **Reference template** - user-provided formatting base, if required by the course
-3. **Student information** - ask the user for name (姓名), student ID (学号), and date prefix; use `[待补: ...]` placeholders if missing
+3. **Student information and naming fields** - ask for name (姓名), student ID (学号), and only the date/course prefix required by the current assignment; use `[待补: ...]` placeholders if a required field is missing
 
 ### Step 2: Build Document Using Reference Template
 
@@ -131,7 +132,7 @@ Use the reference template as the ZIP base. Key principles:
 ```
 - Use pStyle="1" for 一级标题, pStyle="2" for 二级标题
 - Run does NOT need rPr — style provides sz=28/24 and bold
-- IMPORTANT: Remove numPr from styles 1, 2, 3 in styles.xml if using manual heading numbers (not auto-numbering)
+- IMPORTANT: For a paragraph whose visible text already includes manual numbering, suppress inherited numbering directly on that paragraph while preserving its style. Modify a whole heading style only when the template proves that every paragraph using it is manually numbered.
 
 **Body paragraphs** (正文):
 ```xml
@@ -162,7 +163,7 @@ Use the reference template as the ZIP base. Key principles:
   <!-- 文字 run：hint eastAsia -->
   <w:r><w:rPr><w:rFonts w:hint="eastAsia"/><w:sz w:val="30"/>
     <w:szCs w:val="30"/><w:b/><w:bCs/></w:rPr>
-    <w:t xml:space="preserve">0421 graded homework 4</w:t></w:r>
+    <w:t xml:space="preserve">当前作业要求的标题前缀</w:t></w:r>
   <!-- 连字符 run：显式 宋体 -->
   <w:r><w:rPr><w:rFonts w:ascii="宋体" w:hAnsi="宋体" w:cs="宋体"
     w:hint="eastAsia"/><w:sz w:val="30"/><w:szCs w:val="30"/>
@@ -184,11 +185,10 @@ Use the reference template as the ZIP base. Key principles:
 </w:p>
 ```
 - NO pStyle, centered, sz=30 (小三号/15pt), bold
-- Date prefix: follow the user's course requirement. If the course uses month+day, use e.g. "0421", not year+month+day.
-- Date prefix may be the assignment release date, due date, or another course-specific value; ask the user instead of guessing.
+- A date prefix is conditional, not universal. If the current course requires one, ask whether it represents the release date, due date, or another value instead of guessing.
 - **IMPORTANT**: Hyphen "-" must be in its own run with explicit 宋体 font (ascii/hAnsi/cs all set to "宋体")
 - **IMPORTANT**: pPr must include `<w:ind w:firstLineChars="0" w:firstLine="0"/>` and `<w:rPr>` block
-- Title is split into 5 runs: date+text, hyphen, name, hyphen, student ID
+- Split the title into the runs needed by the current naming pattern. A prefix-name-ID pattern commonly uses five runs: prefix, hyphen, name, hyphen, student ID.
 
 **Footnote references** (in body text):
 ```xml
@@ -230,22 +230,33 @@ Use the reference template as the ZIP base. Key principles:
 
 ### Step 3: Heading Hierarchy
 
-- **文档主标题**（居中）: follow the user-provided title pattern, e.g. `[date] graded homework [N]-[Name]-[ID]`; use placeholders for missing identity fields
+- **文档主标题**（居中）: follow the current assignment's user-confirmed pattern; use placeholders for missing identity fields and do not default to a naming example from another course
 - **一级标题**（左对齐）: `一、XXX`, `二、XXX`, 四号, pStyle="1"
 - **二级标题**（左对齐）: `（一）XXX`, `（二）XXX`, 小四号, pStyle="2"
 - **三级标题及以下**: 五号, pStyle="3"
+- **大纲/提纲**: do not add a standalone outline section to the submitted document unless the assignment or user explicitly requests one
 
 ### Step 4: Homework Table of Contents (目录)
 
 Use this step when the user asks for `目录`, `TOC`, "做目录", or when the assignment/template clearly expects a directory.
 
+**Authority and scope**
+- This section is the canonical TOC profile for Chinese legal homework. If it conflicts with a generic Word-TOC workflow, this section controls.
+- Do not import a generic profile's `\u` switch, SDT wrapper, forced `Heading1/2/3` styles, or unrelated tab-stop defaults into a homework document.
+
 **Core strategy**
 - Use the homework template's `TOC10`, `TOC1`, `TOC2`, and `TOC3` styles when they are available.
-- Insert a clean ordinary Word TOC complex field: `TOC \o "1-3" \h \z \u`.
+- Choose the TOC depth deliberately. For an ordinary short homework, default to levels 1-2; include level 3 only when it represents a genuinely independent heading and the document, template, instructor, or user needs that detail.
+- Insert a clean ordinary Word TOC complex field matching the selected depth, normally `TOC \o "1-2" \h \z`; use `TOC \o "1-3" \h \z` only when level 3 is justified. Do not use `\u` when the document has a standalone title.
 - Generate static preview TOC entries from detected headings; Word/WPS can later update page numbers.
 - Keep the TOC field clean, but generate static preview entries with `TOC1/TOC2/TOC3` style plus a paragraph-level right-aligned dot-leader tab stop at `w:pos="8296"`. Some templates have `TOC2/TOC3` indentation but no dot-leader tab, which makes preview page numbers appear beside the heading until Word updates the field.
+- Force the `目录` heading and all visible TOC entry/page-number runs to black (`w:color="000000"`), clearing theme or hyperlink-blue color inheritance. Verify the rendered first page rather than trusting the style name alone.
+- The `\h` switch is optional. If Word/WPS turns entries blue after "更新目录", rerun the helper with `--no-hyperlinks` rather than recoloring the document-wide `Hyperlink` character style; this preserves unrelated links.
 - Preserve untouched DOCX parts byte-for-byte when possible. If the document already has required TOC/heading styles and no `updateFields`, avoid rewriting unrelated parts.
 - Do not copy old `PAGEREF _Toc...` preview entries from a template; they may refer to missing bookmarks and produce Word errors.
+- When replacing a WPS-generated TOC, follow the outer TOC complex-field depth to its matching end. Do not stop at the first `w:fldCharType="end"`; each visible entry may contain nested `HYPERLINK` and `PAGEREF` fields with their own end markers.
+- Do not delete an SDT/content control merely because its visible text contains `目录`; require a real TOC field instruction or a `Table of Contents` gallery marker.
+- Fail closed if ordinary body content or non-paragraph content appears before the supposed outer TOC end. Never guess the boundary or delete through the remainder of the document.
 - Do not set `w:updateFields=true` in `word/settings.xml`; it causes Word to ask whether to update fields.
 - Do not copy a whole `w:sdt` content-control TOC wrapper unless you have verified Word opens without repair prompts. A plain TOC field is safer.
 
@@ -260,15 +271,21 @@ Use this step when the user asks for `目录`, `TOC`, "做目录", or when the a
   - `（一）...`, `（二）...` -> heading style `2` -> `TOC2`
   - independent `1. ...`, `2. ...` -> heading style `3` -> `TOC3`
 - Do not blindly trust existing Word styles. Users often hand-format headings, and converted documents may misuse styles.
+- Do not assume that style IDs `1/2/3` always mean heading levels 1/2/3. WPS may renumber style IDs (for example, `1` may be Normal). Match by visible numbering plus effective outline level/style name, and preserve the existing paragraph style when adding a direct outline level.
+  - When a confirmed heading's visible text already carries `一、`, `（一）`, or `1.` numbering, also suppress inherited automatic numbering at paragraph level so Word/WPS cannot display a doubled prefix; do not strip the paragraph style.
 - Use a double check:
-  - If style `1/2/3` and text numbering agree, include it directly.
-  - If style is missing but the paragraph is clearly a heading, add the correct heading style before generating TOC.
-  - If a paragraph has heading style but text does not look like a heading, do not include it; consider downgrading it to body style.
+  - If the effective outline level and text numbering agree, include it directly.
+  - If a numbered paragraph has a corroborating heading-style name or another heading outline level but lacks the expected level, preserve its current style and add the direct outline level needed by the TOC.
+  - A short `一、` / `（一）` / `1.` prefix alone is not enough: an ordinary numbered list can look identical. Without corroborating style/outline or explicit template/user evidence, leave it unchanged and report it for confirmation.
+  - If a paragraph has a heading/outline style but text does not look like a heading, do not include or silently downgrade it; leave it unchanged and report it for confirmation.
   - If uncertain, leave it out and report it as "需人工确认标题".
-- Only include levels 1-3 by default. Do not include fourth-level or lower material; homework TOCs get too dense quickly.
+- Do not include the document title, the `目录` title, a drafting-only `大纲/提纲`, or body emphasis merely because a converter assigned it a heading style.
+- Do not include fourth-level or lower material. When the selected depth is 1-2, exclude level 3 even if it has a heading style.
 
 **Validation**
-- Verify exactly one `TOC \o "1-3" \h \z \u` field exists when a TOC is requested.
+- Verify exactly one TOC field exists, its `\o` range matches the selected depth, and it does not contain `\u` when the document has a standalone title.
+- Verify the document title matches the final filename basename, the TOC title and entries render black, and the TOC has no unnecessary level or standalone outline entry.
+- If the user will update the field in Word/WPS, verify the post-update color too; use the non-hyperlinked field when the app reapplies blue hyperlink styling.
 - Verify `PAGEREF`, `_Toc...` anchors, and missing bookmarks are not present in the generated preview entries.
 - Verify generated `w:pPr` child order, especially `w:pStyle` before `w:pageBreakBefore`, and `w:tabs` before `w:spacing`.
 - Verify `mc:Ignorable` prefixes are declared and `w:rPr` child order is valid. Running `docx_compat_check.py` is useful; a repaired Word sample should not have undefined-prefix or `rFonts` ordering errors.
@@ -281,12 +298,14 @@ For a deterministic helper, use:
 python3 scripts/add_homework_toc.py input.docx template.docx output.docx
 ```
 
+The helper defaults to `--max-level 2`; pass `--max-level 3` only when the third level is justified. Use `--no-hyperlinks` if a Word/WPS field update makes TOC entries blue.
+
 ### Lessons From the 2026-06-09 TOC Regression Test
 
 A regression test found that an automatically generated static TOC preview could differ from the TOC after Word updated the field: level-2 page numbers appeared immediately after the heading text instead of right-aligned with dot leaders. The cause was that the template's `TOC2/TOC3` styles carried indentation but no right-aligned dot-leader tab. Word adds or normalizes the tab stop when the field is updated, so a static preview must add it explicitly.
 
 Current TOC generation rule:
-- Insert one clean `TOC \o "1-3" \h \z \u` field, but do not set `updateFields=true`.
+- Insert one clean TOC field for the selected depth (normally levels 1-2), but do not set `updateFields=true`.
 - For every static preview entry, set `TOC1/TOC2/TOC3` style and a paragraph-level right-aligned dot-leader tab stop at `w:pos="8296"`.
 - Preserve level indentation: `TOC2` uses `w:left="420"` / `w:leftChars="200"`; `TOC3` uses `w:left="840"` / `w:leftChars="400"`.
 - Normalize `w:pPr` child order automatically. Old or generated homework files may have `w:ind` before `w:spacing`; the helper must reorder rather than fail.
@@ -324,7 +343,7 @@ Current TOC generation rule:
 ### Step 6: Verify Formatting
 
 Checklist:
-1. Title format: correct user-confirmed date prefix, name, student ID or explicit placeholders, centered, sz=30
+1. Title format: current assignment naming convention, identical to final filename basename, correct identity fields or explicit placeholders, centered, sz=30
 2. All headings left-aligned, bold, correct sz (28/24)
 3. Body text: sz=21 (五号), firstLine indent, line=300 (1.25倍)
 4. Body paragraphs: spacing after=156 twips, justified
@@ -332,7 +351,7 @@ Checklist:
 6. Footnote quote runs: all `“”‘’` in footnotes are 宋体 and sz=18
 7. All footnote IDs unique; template-style regular ID `1` is valid, while generated replacement notes may safely start at `4`
 8. Heading styles do not auto-number if headings are manually numbered
-9. TOC requested: clean `TOC \o "1-3" \h \z \u` field, right-aligned dot leaders on preview entries, no stale `PAGEREF _Toc...` references
+9. TOC requested: selected depth is justified, title and entries are black, clean TOC field has no `\u` for a standalone title, no drafting-only outline entry, right-aligned dot leaders on preview entries, no stale `PAGEREF _Toc...` references
 10. Citation placement: no adjacent footnote references at the same sentence-final position; same-claim multiple sources are bundled with semicolons
 11. Footnote text payloads: no leading/trailing whitespace beyond the normal delimiter after the footnote number
 12. Page numbers: bottom center when required by assignment length
@@ -348,7 +367,7 @@ Checklist:
 6. **Each footnoteReference needs a unique ID**: Word renders only the first occurrence of each ID
 7. **Template footnote IDs are -1/0/1**: separators are `-1` and `0`; ID `1` is a valid regular footnote in the course template
 8. **Use ID 4+ only as a safe generation convention**: helpful when replacing all notes or repairing documents created by other tools, but not required by OOXML or the course template
-9. **Remove numPr from heading styles if using manual heading numbers**: otherwise auto-numbering conflicts
+9. **Suppress inherited numbering on confirmed manually numbered heading paragraphs**: preserve their paragraph styles, and avoid global edits based only on numeric style IDs
 10. **Remove each-page footnote restart**: the course template may contain `<w:numRestart w:val="eachPage"/>`; delete it for continuous homework footnotes
 11. **TOC static preview is not the authority for final page numbers**: generate a clean preview with dot leaders, then let Word update the field for final pagination
 12. **Run the compatibility check after footnotes**: `docx_compat_check.py` warns about adjacent footnote references and footnote text that starts with an extra blank
@@ -359,6 +378,7 @@ Checklist:
 ### Scripts
 - `scripts/add_footnotes.py`: Footnote automation utilities
 - `scripts/add_homework_toc.py`: add or rebuild a clean Word-compatible homework TOC with right-aligned dot leaders
+- `scripts/test_add_homework_toc.py`: regression tests for WPS nested/static TOC cleanup, manual-numbering suppression, and field switches; run with `python3 -m unittest -v scripts/test_add_homework_toc.py` from the skill directory
 - `scripts/fix_pandoc_heading_artifacts.py`: remove Pandoc/Word `Heading1`/`Heading2`/`Title` styles, theme colors, highlighting, shading, and auto-numbering from homework titles/headings
 - `scripts/docx_compat_check.py`: final Word/WPS compatibility check, including stale namespace and Pandoc heading-style warnings
 

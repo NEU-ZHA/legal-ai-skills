@@ -16,13 +16,13 @@ For legal homework, legal writing, or similar Word submissions, provide:
 | 课程/机构格式模板 | 作为 DOCX 样式基准，保留页边距、字号、脚注样式、标题层级 | `.docx` 模板 |
 | 草稿正文 | 要排版和插入脚注的正文 | `.docx`、Markdown、纯文本 |
 | 引用来源 | 防止法条、案例、文献引注被编造 | PDF、网页链接、北大法宝/Westlaw/Lexis 检索结果 |
-| 身份字段 | 生成标题和文件名 | 姓名、学号/编号、课程名、日期前缀 |
+| 身份与可选命名字段 | 生成标题和文件名 | 姓名、学号/编号、课程名；仅在本次要求时包含日期前缀 |
 
 ## 二、缺什么时去哪里找 / Where To Find Missing Materials
 
 | 缺少内容 | 先去哪里找 | 找不到时怎么处理 |
 | --- | --- | --- |
-| 日期前缀 | 作业文件名、课程通知、提交说明、邮件标题 | 使用 `[待补: 日期]`，不要猜发布日期或截止日 |
+| 日期前缀（仅本次要求时） | 作业文件名、课程通知、提交说明、邮件标题 | 先确认本次是否要求；不要求则省略，要求但未知才使用 `[待补: 日期]`，不得猜发布日期或截止日 |
 | 作业序号/标题 | 作业题目、课程 LMS、PPT、教师邮件 | 使用 `[待补: 作业序号]` 或 `[待补: 标题]` |
 | 姓名/学号 | 用户本人确认 | 使用 `[待补: 姓名]`、`[待补: 学号]` |
 | 课程模板 | 用户本地课程文件夹、教师/助教发的模板、旧作业附件 | 使用本 skill 的匿名模板作为保守基准，并说明未能核对课程专属格式 |
@@ -43,7 +43,7 @@ assets/legal-homework-template-anonymized.docx
 
 它保留了课程作业常用的 Word 样式结构：
 
-- 标题 run 拆分结构：`[日期] graded homework [序号]-[姓名]-[学号]`
+- 标题 run 拆分结构示例：`[日期] graded homework [序号]-[姓名]-[学号]`（仅为匿名模板兼容示例，不是默认命名规则）
 - 中文宋体、英文 Times New Roman
 - 正文五号、1.25 倍行距、首行缩进、两端对齐
 - 脚注小五、上标脚注标记、连续脚注编号
@@ -51,7 +51,7 @@ assets/legal-homework-template-anonymized.docx
 
 It preserves the common Word style structure:
 
-- Split title runs: `[日期] graded homework [序号]-[姓名]-[学号]`
+- Example split title runs: `[日期] graded homework [序号]-[姓名]-[学号]` (an anonymized-template compatibility example, not a default naming rule)
 - SimSun for Chinese and Times New Roman for English
 - Body text in 10.5 pt, 1.25 line spacing, first-line indent, justified
 - Footnotes in 9 pt with superscript references and continuous numbering

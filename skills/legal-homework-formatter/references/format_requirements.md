@@ -6,18 +6,18 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 
 ### 1.1 文件命名格式
 ```
-[日期前缀] graded homework [作业序号]-[姓名或待补占位符]-[学号或待补占位符].docx
+[当前作业要求的课程名/题号]-[姓名或待补占位符]-[学号或待补占位符].docx
 ```
 
 **示例：**
-- `0310 graded homework 1-[待补: 姓名]-[待补: 学号].docx`
-- `0421 graded homework 4-Li Ming-2026000000.docx`
+- `民法案例1-[待补: 姓名]-[待补: 学号].docx`
+- `Course Assignment 4-Li Ming-2026000000.docx`
 
 **注意事项：**
-- 日期前缀格式：**月份+日期**（如 `0421`），**不是**年月日（如 `260421`）
-- 日期前缀是否为提交日期、发布日期或课程指定日期，应向用户确认
-- 日期前缀通常来源于作业要求文档的命名或课程说明
-- 作业序号使用阿拉伯数字
+- 以本次作业通知、用户确认的文件名和课程模板为准，不从旧作业沿用命名。
+- 只有本次要求明确出现日期前缀或 `graded homework N` 时才保留；不得因匿名模板带有该示例结构而自动加入。
+- 若课程要求“三名同一”，邮件主题、附件文件名和文档标题须一致。
+- 身份字段缺失时保留明确占位符，不得猜测或沿用维护者信息。
 
 ### 1.2 文档标题格式
 - **格式：** 与文件名相同 ("三名同一"原则)
@@ -29,12 +29,8 @@ Public-release privacy rule: never default to a real maintainer name, student ID
   - 无 pStyle
   - pPr 必须包含：`<w:spacing w:after="156"/>`, `<w:ind w:firstLineChars="0" w:firstLine="0"/>`, `<w:jc w:val="center"/>`
   - pPr 内必须含 `<w:rPr><w:sz w:val="30"/><w:szCs w:val="30"/></w:rPr>`
-  - **标题须拆分为 5 个独立的 run**（对齐参考模板）：
-    1. 日期+文字部分（如 `0421 graded homework 4`）→ `hint="eastAsia"`, sz=30, bold
-    2. 连字符 `-` → **显式 宋体**：`ascii="宋体" hAnsi="宋体" cs="宋体" hint="eastAsia"`, sz=30, bold
-    3. 姓名 → `hint="eastAsia"`, sz=30, bold
-    4. 连字符 `-` → 同 run 2（显式 宋体）
-    5. 学号 → `hint="eastAsia"`, sz=30, bold
+  - 按中英文和连字符的字体边界拆分 run；run 数量由本次标题实际结构决定，不固定为 5 个。
+  - 中文与连字符显式使用宋体，英文和数字使用 Times New Roman；所有标题 run 均保持 sz=30、bold。
   - 连字符 run 的 rFonts 必须显式设置 ascii/hAnsi/cs 均为 `"宋体"`，确保在 WPS 和 Word 中均以宋体显示
 
 ### 1.3 标题层级 (严格执行)
@@ -54,14 +50,20 @@ Public-release privacy rule: never default to a real maintainer name, student ID
 
 当作业要求目录，或用户明确要求生成/修复目录时：
 
-- 使用干净的 Word TOC 域：`TOC \o "1-3" \h \z \u`
-- 使用 `TOC10` 作为“目录”标题样式，使用 `TOC1`、`TOC2`、`TOC3` 作为三级目录项样式
+- 普通短作业默认只展开一、二级，使用干净的 Word TOC 域：`TOC \o "1-2" \h \z`。只有三级标题确属独立结构且本次要求需要时，才改为 `TOC \o "1-3" \h \z`。
+- 文档有独立主标题时不使用 `\u`；不要把通用 TOC profile 的开关机械搬入法学作业。
+- 使用 `TOC10` 作为“目录”标题样式，并按所选深度使用 `TOC1`、`TOC2`、`TOC3`。
+- “目录”标题、目录项和页码一律显式为黑色；若 Word/WPS 更新后因 `\h` 变蓝，可改用脚本的 `--no-hyperlinks`，不要全局修改 Hyperlink 样式。
 - 静态预览条目必须显式加入右对齐点引导线 tab：`w:val="right"`、`w:leader="dot"`、`w:pos="8296"`
 - `TOC2` 保留二级缩进：`w:left="420"` / `w:leftChars="200"`
 - `TOC3` 保留三级缩进：`w:left="840"` / `w:leftChars="400"`
+- 标题识别必须同时有编号文本和标题样式/大纲或本次模板、用户的其他明确证据；短 `一、`、`（一）`、`1.` 前缀本身也可能是普通列表，不得据此修改段落。
 - 不复制旧模板里的 `PAGEREF _Toc...` 预览项；这些旧锚点可能在新文档中不存在
+- 清理 WPS 旧目录时按样式名称识别目录角色，不能只依赖 styleId 以 `TOC` 开头；WPS 可能把 `toc 1/toc 2` 保存成数字 styleId。
+- 外层 TOC 域内可能嵌套每条目录项自己的 `HYPERLINK/PAGEREF` 域，必须按域深度找到外层匹配 end，不能遇到第一个 end 就停止。
 - 不设置 `w:updateFields=true`，避免 Word 打开时弹出更新域提示
 - 标题页和“目录”留在第一页；正文第一页通过首个正文段落的 `<w:pageBreakBefore/>` 开始
+- 不在提交稿中另加“大纲/提纲”，除非本次作业或用户明确要求。
 - 静态预览页码只是占位和视觉预览，最终页码以 Word 更新域后的结果为准
 
 可使用脚本：
@@ -237,21 +239,21 @@ python3 scripts/add_homework_toc.py input.docx template.docx output.docx
 ### 7.4 章节标题自动添加编号
 **原因：** heading 样式 (1, 2, 3) 自带 numPr (自动编号)
 
-**解决：** 如需手动编写标题文字（如"一、菜单案"），从 styles.xml 中移除 heading 样式的 numPr
+**解决：** 若标题文字已经手写编号（如“一、菜单案”），在这个已确认的段落上直接写入 `<w:numPr><w:numId w:val="0"/></w:numPr>` 以压住继承编号，同时保留原 pStyle。不要只凭数字 styleId 全局修改样式。
 
 ### 7.4.1 标题出现"一、一、"重复编号
 **原因：** 同时使用手写中文编号和模板 heading 自动编号
 
 **解决：**
 - 作业正文通常保留手写标题编号（便于纯文本和批注识别）
-- 在生成最终 docx 时移除 styles.xml 中 heading 1/2/3 的 `<w:numPr>`，保留字号、加粗等其他样式属性
+- 仅在已确认含手工编号的标题段落上抑制继承编号，保留字号、加粗和原段落样式；只有能够证明某专用样式下所有段落均为手工编号时，才考虑修改整个样式
 
 ### 7.5 Pandoc 转写后标题变蓝/变绿
 **原因：** Markdown/Pandoc 转 DOCX 时常把标题段落写成 Word 内置 `Heading1`、`Heading2` 或 `Title`，并通过主题色、highlight、shading 或自动编号继承视觉样式。之后即使直接改字号，Word 仍可能按内置标题样式显示为蓝色、绿色或带项目符号。
 
 **解决：**
 - 最终生成前运行 `scripts/fix_pandoc_heading_artifacts.py`；
-- 清除标题段落的 `Heading1`/`Heading2`/`Title` 样式和 `<w:numPr>`；
+- 清除转换器遗留的 `Heading1`/`Heading2`/`Title` 样式和 direct `<w:numPr>`；这是清理中间态。完成课程标题样式/outline 赋值后，若已确认的手工编号标题仍会继承自动编号，最终在该段落写入 direct `w:numId=0`；
 - 清除标题 run 的 `<w:color>`、`w:themeColor`、`<w:highlight>`、`<w:shd>`；
 - 直接写入黑色 `<w:color w:val="000000"/>`，并按标题层级设置字号和加粗；
 - 最后运行 `scripts/docx_compat_check.py`，若仍提示 Pandoc/Word heading styles，继续清理后再交付。
